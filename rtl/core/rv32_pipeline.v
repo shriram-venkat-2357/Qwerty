@@ -117,11 +117,14 @@ module rv32_pipeline (
     wire [31:0] wb_write_data;
 
     // --- Hazard / Stall / Flush ---
-    wire         if_stall;
-    wire         id_stall;
-    wire         id_flush;
-    wire         ex_flush;
+    wire        if_stall;
+    wire        id_stall;
+    wire        id_flush;
+    wire        ex_flush;
 
+    // --- Forwarding ---
+    wire [1:0] forward_a;
+    wire [1:0] forward_b;
     // ============================================================
     // IF STAGE
     // ============================================================
@@ -305,6 +308,19 @@ module rv32_pipeline (
     // EX STAGE
     // ============================================================
 
+
+    // Forwarding unit
+    forwarding_unit u_fwd (
+        .ex_rs1_addr  (ex_rs1_addr),
+        .ex_rs2_addr  (ex_rs2_addr),
+        .mem_reg_write(mem_reg_write),
+        .mem_rd       (mem_rd),
+        .wb_reg_write (wb_reg_write),
+        .wb_rd        (wb_rd),
+        .forward_a    (forward_a),
+        .forward_b    (forward_b)
+    );
+
     alu_control u_alu_ctrl (
         .funct3  (ex_funct3),
         .funct7  (ex_funct7),
@@ -312,9 +328,18 @@ module rv32_pipeline (
         .alu_ctrl(ex_alu_ctrl)
     );
 
-    // ALU inputs
-    assign ex_alu_a = ex_auipc ? ex_pc : ex_rs1_data;
-    assign ex_alu_b = ex_alu_src ? ex_imm : ex_rs2_data;
+    // Forwarded register values
+    wire [31:0] fwd_rs1_data = (forward_a == 2'b10) ? mem_alu_result :
+                                (forward_a == 2'b01) ? wb_write_data :
+                                ex_rs1_data;
+
+    wire [31:0] fwd_rs2_data = (forward_b == 2'b10) ? mem_alu_result :
+                                (forward_b == 2'b01) ? wb_write_data :
+                                ex_rs2_data;
+
+    // ALU inputs (using forwarded values)
+    assign ex_alu_a = ex_auipc ? ex_pc : fwd_rs1_data;
+    assign ex_alu_b = ex_alu_src ? ex_imm : fwd_rs2_data;
 
     alu u_alu (
         .a     (ex_alu_a),
