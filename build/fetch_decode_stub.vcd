@@ -1,0 +1,109 @@
+$date
+	Sat Aug  8 16:28:28 2026
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module tb_fetch_decode_stub $end
+$var wire 32 ! pc [31:0] $end
+$var wire 7 " opcode [6:0] $end
+$var wire 32 # instr [31:0] $end
+$var reg 1 $ clk $end
+$var reg 1 % rst_n $end
+$scope module dut $end
+$var wire 1 $ clk $end
+$var wire 1 % rst_n $end
+$var wire 7 & opcode [6:0] $end
+$var parameter 32 ' NOP_INSTR $end
+$var reg 32 ( instr [31:0] $end
+$var reg 32 ) pc [31:0] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+b10011 '
+$end
+#0
+$dumpvars
+b0 )
+b10011 (
+b10011 &
+0%
+0$
+b10011 #
+b10011 "
+b0 !
+$end
+#5000
+1$
+#10000
+0$
+#15000
+1$
+#20000
+0$
+1%
+#25000
+b100 !
+b100 )
+1$
+#30000
+0$
+#35000
+b1000 !
+b1000 )
+1$
+#40000
+0$
+#45000
+b1100 !
+b1100 )
+1$
+#50000
+0$
+#55000
+b10000 !
+b10000 )
+1$
+#60000
+0$
+#65000
+b10100 !
+b10100 )
+1$
+#70000
+0$
+#75000
+b11000 !
+b11000 )
+1$
+#80000
+0$
+#85000
+b11100 !
+b11100 )
+1$
+#90000
+0$
+#95000
+b100000 !
+b100000 )
+1$
+#100000
+0$
+#105000
+b100100 !
+b100100 )
+1$
+#110000
+0$
+#115000
+b101000 !
+b101000 )
+1$
+#120000
+0$
