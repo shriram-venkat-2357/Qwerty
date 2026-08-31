@@ -1,0 +1,14 @@
+read_verilog rtl/accel/nmc_array_popcount.v
+hierarchy -top nmc_array_popcount
+proc
+opt
+memory
+opt
+flatten
+opt
+techmap
+opt
+dfflibmap -liberty /home/shriram_venkat/pdk/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+abc -liberty /home/shriram_venkat/pdk/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+opt
+stat -liberty /home/shriram_venkat/pdk/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
