@@ -73,7 +73,12 @@ module rv32_pipeline (
     wire        ex_auipc;
     wire [1:0]  ex_alu_op;
 
-    // --- EX stage: ALU ---
+    // --- EX stage: M-extension and CSR ---
+    wire [31:0] ex_muldiv_result;
+    wire [31:0] ex_csr_rdata;
+    wire ex_is_m_ext = (ex_opcode == 7'b0110011) && (ex_funct7 == 7'b0000001);
+    wire ex_is_csr   = (ex_opcode == 7'b1110011);
+    wire [31:0] ex_result;
     wire [3:0]  ex_alu_ctrl;
     wire [31:0] ex_alu_a;
     wire [31:0] ex_alu_b;
@@ -348,6 +353,27 @@ module rv32_pipeline (
         .result(ex_alu_result),
         .zero  (ex_alu_zero)
     );
+    // RV32M unit
+    muldiv u_muldiv (
+        .a      (ex_rs1_data),
+        .b      (ex_rs2_data),
+        .funct3 (ex_funct3),
+        .result (ex_muldiv_result)
+    );
+
+    // Zicsr counters (instret increments when a real instruction enters)
+    csr_unit u_csr (
+        .clk         (clk),
+        .rst_n       (rst_n),
+        .instret_inc (~if_stall & ~id_flush),
+        .addr        (ex_imm[11:0]),
+        .rdata       (ex_csr_rdata)
+    );
+
+    // EX result MUX: M-ext / CSR / normal ALU
+    assign ex_result = ex_is_m_ext ? ex_muldiv_result :
+                       ex_is_csr   ? ex_csr_rdata     :
+                       ex_alu_result;
 
     // Branch condition evaluation
     always @(*) begin
@@ -378,7 +404,7 @@ module rv32_pipeline (
         .clk             (clk),
         .rst_n           (rst_n),
         .flush           (ex_flush),
-        .alu_result_in   (ex_alu_result),
+        .alu_result_in   (ex_result),
         .rs2_data_in     (ex_rs2_data),
         .rd_in           (ex_rd),
         .funct3_in       (ex_funct3),

@@ -13,6 +13,7 @@ module control_unit (
     output reg [1:0]  alu_op      // ALU operation select
 );
 
+    localparam OP_CUSTOM0 = 7'b0001011;
     localparam OP_RTYPE  = 7'b0110011;
     localparam OP_ITYPE  = 7'b0010011;
     localparam OP_LOAD   = 7'b0000011;
@@ -38,6 +39,12 @@ module control_unit (
         alu_op     = 2'b00;
 
         case (opcode)
+
+            OP_CUSTOM0: begin
+                // WEEK-3 STUB: custom-0 recognised but executed as NOP.
+                // Replaced by nmc_unit dispatch (xif_bridge) in Week 4.
+            end
+
             OP_RTYPE: begin
                 reg_write = 1'b1;
                 alu_op    = 2'b00;  // R-type
