@@ -1,0 +1,5 @@
+riscv-tests/
+build/
+training/data/
+training/__pycache__/
+verif/test_nmc
