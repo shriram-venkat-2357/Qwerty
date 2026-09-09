@@ -226,32 +226,24 @@ module rv32_pipeline (
                         id_imm_i;
 
     // ============================================================
-    // NAIVE HAZARD DETECTION (stall on any dependency)
-    // No forwarding yet — this is the simple-but-correct version
+    // HAZARD CONTROL (with forwarding)
+    // Forwarding resolves every dependency except load-use.
+    // Load-use = 1-cycle interlock:
+    //   freeze PC + IF/ID, bubble ID/EX so the load advances to MEM;
+    //   data then arrives via MEM/WB -> EX forwarding.
+    // NEVER hold ID/EX here: holding it keeps the load in EX and
+    // deadlocks (this was the old naive-logic bug).
     // ============================================================
 
-    // Check if ID stage instruction depends on a result still in pipeline
-    wire id_ex_hazard = (ex_reg_write && (ex_rd != 5'd0)) &&
-                        ((ex_rd == id_rs1 && id_opcode != 7'b0110111 && id_opcode != 7'b0010111) ||
-                         (ex_rd == id_rs2 && id_opcode != 7'b0110111 && id_opcode != 7'b0010111));
+    wire load_use_hazard = ex_mem_read && (ex_rd != 5'd0) &&
+        ((ex_rd == id_rs1 && id_opcode != 7'b0110111 && id_opcode != 7'b0010111 && id_opcode != 7'b1101111) ||
+         (ex_rd == id_rs2 && id_opcode != 7'b0110111 && id_opcode != 7'b0010111 && id_opcode != 7'b1101111));
 
-    wire ex_mem_hazard = (mem_reg_write && (mem_rd != 5'd0)) &&
-                         ((mem_rd == id_rs1 && id_opcode != 7'b0110111 && id_opcode != 7'b0010111) ||
-                          (mem_rd == id_rs2 && id_opcode != 7'b0110111 && id_opcode != 7'b0010111));
-
-    wire mem_wb_hazard = (wb_reg_write && (wb_rd != 5'd0)) &&
-                         ((wb_rd == id_rs1 && id_opcode != 7'b0110111 && id_opcode != 7'b0010111) ||
-                          (wb_rd == id_rs2 && id_opcode != 7'b0110111 && id_opcode != 7'b0010111));
-
-    wire data_hazard = id_ex_hazard || ex_mem_hazard || mem_wb_hazard;
-
-    // Branch flush: when branch resolves in MEM, flush IF and ID
     wire branch_flush = (mem_branch && mem_branch_taken) || mem_jump;
 
-    // Stall: hold IF and ID when there's a data hazard
-    assign if_stall = data_hazard && !branch_flush;
-    assign id_stall = data_hazard && !branch_flush;
-    assign id_flush = branch_flush;
+    assign if_stall = load_use_hazard && !branch_flush;
+    assign id_stall = 1'b0;   // ID/EX must never hold
+    assign id_flush = branch_flush || (load_use_hazard && !branch_flush);
     assign ex_flush = branch_flush;
 
     // ============================================================
