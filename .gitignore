@@ -3,3 +3,7 @@ build/
 training/data/
 training/__pycache__/
 verif/test_nmc
+build/
+*.swp
+*.swo
+*~
