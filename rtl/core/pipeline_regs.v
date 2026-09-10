@@ -201,34 +201,47 @@ module ex_mem_reg (
 );
 
     always @(posedge clk or negedge rst_n) begin
-        if (!rst_n || flush) begin
-            alu_result_out   <= 32'd0;
-            rs2_data_out     <= 32'd0;
-            rd_out           <= 5'd0;
-            funct3_out       <= 3'd0;
-            reg_write_out    <= 1'b0;
-            mem_read_out     <= 1'b0;
-            mem_write_out    <= 1'b0;
-            mem_to_reg_out   <= 1'b0;
-            branch_out       <= 1'b0;
-            jump_out         <= 1'b0;
-            branch_taken_out <= 1'b0;
-            branch_target_out<= 32'd0;
-        end else begin
-            alu_result_out   <= alu_result_in;
-            rs2_data_out     <= rs2_data_in;
-            rd_out           <= rd_in;
-            funct3_out       <= funct3_in;
-            reg_write_out    <= reg_write_in;
-            mem_read_out     <= mem_read_in;
-            mem_write_out    <= mem_write_in;
-            mem_to_reg_out   <= mem_to_reg_in;
-            branch_out       <= branch_in;
-            jump_out         <= jump_in;
-            branch_taken_out <= branch_taken_in;
-            branch_target_out<= branch_target_in;
-        end
+    if (!rst_n) begin
+        alu_result_out <= 32'd0;
+        rs2_data_out   <= 32'd0;
+        rd_out         <= 5'd0;
+        funct3_out     <= 3'd0;
+        reg_write_out  <= 1'b0;
+        mem_read_out   <= 1'b0;
+        mem_write_out  <= 1'b0;
+        mem_to_reg_out <= 1'b0;
+        branch_out     <= 1'b0;
+        jump_out       <= 1'b0;
+        branch_taken_out <= 1'b0;
+        branch_target_out <= 32'd0;
+    end else if (flush) begin
+        alu_result_out <= 32'd0;
+        rs2_data_out   <= 32'd0;
+        rd_out         <= 5'd0;
+        funct3_out     <= 3'd0;
+        reg_write_out  <= 1'b0;
+        mem_read_out   <= 1'b0;
+        mem_write_out  <= 1'b0;
+        mem_to_reg_out <= 1'b0;
+        branch_out     <= 1'b0;
+        jump_out       <= 1'b0;
+        branch_taken_out <= 1'b0;
+        branch_target_out <= 32'd0;
+    end else begin
+        alu_result_out <= alu_result_in;
+        rs2_data_out   <= rs2_data_in;
+        rd_out         <= rd_in;
+        funct3_out     <= funct3_in;
+        reg_write_out  <= reg_write_in;
+        mem_read_out   <= mem_read_in;
+        mem_write_out  <= mem_write_in;
+        mem_to_reg_out <= mem_to_reg_in;
+        branch_out     <= branch_in;
+        jump_out       <= jump_in;
+        branch_taken_out <= branch_taken_in;
+        branch_target_out <= branch_target_in;
     end
+end
 
 endmodule
 

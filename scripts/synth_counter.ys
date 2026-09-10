@@ -1,0 +1,10 @@
+read_verilog rtl/core/counter.v
+hierarchy -check -top counter
+proc
+opt
+techmap
+opt
+dfflibmap -liberty ~/pdk/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+abc -liberty ~/pdk/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+clean
+write_verilog build/counter_synth.v

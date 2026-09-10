@@ -1,0 +1,14 @@
+# Read all Verilog source files in the core and accel folders
+read_verilog rtl/core/*.v
+read_verilog rtl/accel/*.v
+
+# Synthesize the top-level pipeline module
+synth -top rv32_pipeline
+
+# Map logic and flip-flops to the Sky130 PDK
+dfflibmap -liberty /home/vanmathisamikkannu/pdk/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+abc -liberty /home/vanmathisamikkannu/pdk/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+
+# Cleanup and output the synthesized netlist
+clean
+write_verilog build/cpu_synth.v
