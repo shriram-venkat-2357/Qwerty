@@ -100,7 +100,7 @@ module id_ex_reg (
             rs2_addr_out  <= 5'd0;
             funct3_out    <= 3'd0;
             funct7_out    <= 7'd0;
-            opcode_out    <= 7'd0;
+            opcode_out    <= 7'h13;
             reg_write_out <= 1'b0;
             mem_read_out  <= 1'b0;
             mem_write_out <= 1'b0;
@@ -123,7 +123,7 @@ module id_ex_reg (
             rs2_addr_out  <= 5'd0;
             funct3_out    <= 3'd0;
             funct7_out    <= 7'd0;
-            opcode_out    <= 7'd0;
+            opcode_out    <= 7'h13;
             reg_write_out <= 1'b0;
             mem_read_out  <= 1'b0;
             mem_write_out <= 1'b0;

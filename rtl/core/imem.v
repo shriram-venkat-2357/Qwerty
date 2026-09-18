@@ -1,8 +1,9 @@
-module imem (
+module imem #(
+    parameter FILE = "program.hex"
+)(
     input  wire [31:0] addr,
     output wire [31:0] instr
 );
-
     // 256 words of instruction memory
     reg [31:0] mem [0:255];
 
@@ -11,7 +12,6 @@ module imem (
 
     // Initialize memory from file
     initial begin
-        $readmemh("program.hex", mem);
+        $readmemh(FILE, mem);
     end
-
 endmodule

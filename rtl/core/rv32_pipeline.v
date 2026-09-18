@@ -1,5 +1,7 @@
-module rv32_pipeline (
-    input  wire        clk,
+module rv32_pipeline #(
+    parameter IMEM_FILE = "program.hex"
+) (
+input  wire        clk,
     input  wire        rst_n,
     output wire [31:0] pc_out
 );
@@ -79,6 +81,13 @@ module rv32_pipeline (
     wire ex_is_m_ext = (ex_opcode == 7'b0110011) && (ex_funct7 == 7'b0000001);
     wire ex_is_csr   = (ex_opcode == 7'b1110011);
     wire [31:0] ex_result;
+    wire        ex_trap;
+    wire        ex_mret;
+    wire [31:0] ex_trap_cause;
+    wire        ex_csr_we;
+    reg  [31:0] ex_csr_new;
+    wire [31:0] csr_mtvec;
+    wire [31:0] csr_mepc;
     wire [3:0]  ex_alu_ctrl;
     wire [31:0] ex_alu_a;
     wire [31:0] ex_alu_b;
@@ -134,18 +143,19 @@ module rv32_pipeline (
     // IF STAGE
     // ============================================================
 
-    imem u_imem (
+    imem #(.FILE(IMEM_FILE)) u_imem (
         .addr  (pc),
         .instr (instr)
     );
 
     // PC update logic
     wire [31:0] next_pc;
-    assign next_pc = (mem_branch && mem_branch_taken) ? mem_branch_target :
+    assign next_pc = ex_trap                           ? csr_mtvec :
+                     ex_mret                           ? csr_mepc  :
+                     (mem_branch && mem_branch_taken)  ? mem_branch_target :
                      (mem_jump)                        ? mem_branch_target :
                      if_stall                          ? pc :
                      pc_plus4;
-
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n)
             pc <= 32'h0000_0000;
@@ -213,7 +223,9 @@ module rv32_pipeline (
         .rdata1 (id_rs1_data),
         .rdata2 (id_rs2_data)
     );
-
+    // csrr* instructions write rd (ecall/mret do not)
+    wire id_csr_read      = (id_opcode == 7'h73) && (id_funct3 != 3'b000);
+    wire id_reg_write_eff = id_reg_write || id_csr_read;
     // Immediate selection
     assign id_imm_sel = (id_opcode == 7'b0010011) ? id_imm_i :  // I-type
                         (id_opcode == 7'b0000011) ? id_imm_i :  // Load
@@ -241,11 +253,11 @@ module rv32_pipeline (
 
     wire branch_flush = (mem_branch && mem_branch_taken) || mem_jump;
 
-    assign if_stall = load_use_hazard && !branch_flush;
+    assign if_stall = load_use_hazard && !branch_flush && !ex_trap && !ex_mret;
     assign id_stall = 1'b0;   // ID/EX must never hold
-    assign id_flush = branch_flush || (load_use_hazard && !branch_flush);
-    assign ex_flush = branch_flush;
-
+    assign id_flush = branch_flush || (load_use_hazard && !branch_flush)
+                                   || ex_trap || ex_mret;
+    assign ex_flush = branch_flush || ex_trap;   // trap instr must not reach MEM
     // ============================================================
     // ID/EX PIPELINE REGISTER
     // ============================================================
@@ -266,7 +278,7 @@ module rv32_pipeline (
         .funct3_in     (id_funct3),
         .funct7_in     (id_funct7),
         .opcode_in     (id_opcode),
-        .reg_write_in  (id_reg_write),
+        .reg_write_in  (id_reg_write_eff),
         .mem_read_in   (id_mem_read),
         .mem_write_in  (id_mem_write),
         .mem_to_reg_in (id_mem_to_reg),
@@ -353,13 +365,56 @@ module rv32_pipeline (
         .result (ex_muldiv_result)
     );
 
-    // Zicsr counters (instret increments when a real instruction enters)
+    // ---- SYSTEM decode in EX ----
+    wire ex_system  = (ex_opcode == 7'h73);
+    wire ex_ecall   = ex_system && (ex_funct3 == 3'b000) && (ex_imm[11:0] == 12'h000);
+    assign ex_mret  = ex_system && (ex_funct3 == 3'b000) && (ex_imm[11:0] == 12'h302);
+
+    wire ex_legal_opcode = (ex_opcode == 7'h37) || (ex_opcode == 7'h17) ||
+                           (ex_opcode == 7'h6F) || (ex_opcode == 7'h67) ||
+                           (ex_opcode == 7'h63) || (ex_opcode == 7'h03) ||
+                           (ex_opcode == 7'h23) || (ex_opcode == 7'h13) ||
+                           (ex_opcode == 7'h33) || (ex_opcode == 7'h73) ||
+                           (ex_opcode == 7'h0B);   // custom-0 = legal NOP stub
+
+    wire ex_illegal = (!ex_legal_opcode) ||
+                      (ex_system && (ex_funct3 == 3'b000) &&
+                       (ex_imm[11:0] != 12'h000) && (ex_imm[11:0] != 12'h302));
+
+    assign ex_trap       = ex_ecall || ex_illegal;
+    assign ex_trap_cause = ex_ecall ? 32'd11 : 32'd2;  // 11=M-mode ecall, 2=illegal
+
+    // ---- CSR read-modify-write value (computed in EX) ----
+    wire [31:0] ex_csr_src = ex_funct3[2] ? {27'd0, ex_instr[19:15]} : fwd_rs1_data;
+
+    always @(*) begin
+        case (ex_funct3[1:0])
+            2'b01:   ex_csr_new = ex_csr_src;                  // csrrw(i)
+            2'b10:   ex_csr_new = ex_csr_rdata | ex_csr_src;   // csrrs(i)
+            default: ex_csr_new = ex_csr_rdata & ~ex_csr_src;  // csrrc(i)
+        endcase
+    end
+
+    // Write enable per spec: csrrw(i) always; csrrs/c only if src != 0.
+    // Killed if this instruction is on a wrong path (flush) or is a trap.
+    assign ex_csr_we = ex_system && (ex_funct3 != 3'b000) &&
+                       ((ex_funct3[1:0] == 2'b01) || (ex_csr_src != 32'd0)) &&
+                       !branch_flush && !ex_trap;
+
     csr_unit u_csr (
         .clk         (clk),
         .rst_n       (rst_n),
         .instret_inc (~if_stall & ~id_flush),
-        .addr        (ex_imm[11:0]),
-        .rdata       (ex_csr_rdata)
+        .raddr       (ex_imm[11:0]),
+        .rdata       (ex_csr_rdata),
+        .we          (ex_csr_we),
+        .waddr       (ex_imm[11:0]),
+        .wdata       (ex_csr_new),
+        .trap_we     (ex_trap),
+        .trap_mepc   (ex_pc),
+        .trap_cause  (ex_trap_cause),
+        .mtvec_q     (csr_mtvec),
+        .mepc_q      (csr_mepc)
     );
 
     // EX result MUX: M-ext / CSR / normal ALU
