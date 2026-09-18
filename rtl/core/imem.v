@@ -7,7 +7,7 @@ module imem (
     reg [31:0] mem [0:255];
 
     // Read instruction (combinational)
-    assign instr = mem[addr[31:2]];
+    assign instr = mem[addr[9:2]];
 
     // Initialize memory from file
     initial begin
