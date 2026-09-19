@@ -3,20 +3,17 @@ module csr_unit (
     input  wire         clk,
     input  wire         rst_n,
     input  wire         instret_inc,
-    // Read port (used in EX)
     input  wire [11:0]  raddr,
     output wire [31:0]  rdata,
-    // Instruction write port (applied at end of EX)
     input  wire         we,
     input  wire [11:0]  waddr,
     input  wire [31:0]  wdata,
-    // Trap write port (priority over instruction write)
     input  wire         trap_we,
     input  wire [31:0]  trap_mepc,
     input  wire [31:0]  trap_cause,
-    // Direct outputs for the PC mux
     output wire [31:0]  mtvec_q,
-    output wire [31:0]  mepc_q
+    output wire [31:0]  mepc_q,
+    input  wire [31:0]  nmc_status_in
 );
 
     reg [63:0] cycle_cnt;
@@ -62,6 +59,7 @@ module csr_unit (
                    (raddr == 12'h341) ? mepc :
                    (raddr == 12'h342) ? mcause :
                    (raddr == 12'h305) ? mtvec :
+                   (raddr == 12'h7C0) ? nmc_status_in :
                    32'd0;
 
 endmodule

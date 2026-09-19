@@ -413,6 +413,7 @@ input  wire        clk,
         .trap_we     (ex_trap),
         .trap_mepc   (ex_pc),
         .trap_cause  (ex_trap_cause),
+        .nmc_status_in (32'd0),   // rewired to sequencer in step 5.3
         .mtvec_q     (csr_mtvec),
         .mepc_q      (csr_mepc)
     );
