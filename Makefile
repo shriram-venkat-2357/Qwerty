@@ -32,3 +32,8 @@ lint:
 
 clean:
 	rm -f build/*.vvp build/*.vcd
+
+sim_nmc:
+	mkdir -p build
+	iverilog -DNMC -o build/nmc_instr.vvp $(SRC) tb/tb_nmc_instr.v
+	vvp build/nmc_instr.vvp
