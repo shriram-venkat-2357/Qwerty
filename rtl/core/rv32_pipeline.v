@@ -184,7 +184,7 @@ input  wire        clk,
         .clk      (clk),
         .rst_n    (rst_n),
         .stall    (if_stall),
-        .flush    (id_flush),
+        .flush       (if_id_flush),
         .pc_in    (pc),
         .instr_in (instr),
         .pc_out   (if_id_pc),
@@ -267,11 +267,16 @@ input  wire        clk,
          (ex_rd == id_rs2 && id_opcode != 7'b0110111 && id_opcode != 7'b0010111 && id_opcode != 7'b1101111));
 
     wire branch_flush = (mem_branch && mem_branch_taken) || mem_jump;
+    // custom-0 waits in ID (bubbling EX) until the sequencer is idle:
+    // operands stay correct via regfile re-read + normal forwarding
+    wire nmc_wait = (id_opcode == 7'h0B) && (seq_busy || nmc_issue) && !branch_flush;
+
     assign if_stall = (load_use_hazard && !branch_flush && !ex_trap && !ex_mret)
-                      || nmc_stall;
-    assign id_stall = nmc_stall;   // holds nmc.rd in EX until sequencer idle
-    assign id_flush = branch_flush || (load_use_hazard && !branch_flush)
-                                   || ex_trap || ex_mret;
+                      || nmc_wait;
+    assign id_stall = 1'b0;   // ID/EX must never hold
+    wire if_id_flush = branch_flush || ex_trap || ex_mret;  // kill IF/ID only on wrong path
+    assign id_flush  = branch_flush || (load_use_hazard && !branch_flush)
+                                    || ex_trap || ex_mret || nmc_wait;  // bubble ID/EX
     assign ex_flush = branch_flush || ex_trap;   // trap instr must not reach MEM
     // ============================================================
     // ID/EX PIPELINE REGISTER
@@ -374,8 +379,8 @@ input  wire        clk,
     );
     // RV32M unit
     muldiv u_muldiv (
-        .a      (ex_rs1_data),
-        .b      (ex_rs2_data),
+        .a      (fwd_rs1_data),
+        .b      (fwd_rs2_data),
         .funct3 (ex_funct3),
         .result (ex_muldiv_result)
     );
@@ -443,12 +448,12 @@ input  wire        clk,
         ex_branch_taken = 1'b0;
         if (ex_branch) begin
             case (ex_funct3)
-                3'b000: ex_branch_taken = (ex_rs1_data == ex_rs2_data);
-                3'b001: ex_branch_taken = (ex_rs1_data != ex_rs2_data);
-                3'b100: ex_branch_taken = ($signed(ex_rs1_data) < $signed(ex_rs2_data));
-                3'b101: ex_branch_taken = ($signed(ex_rs1_data) >= $signed(ex_rs2_data));
-                3'b110: ex_branch_taken = (ex_rs1_data < ex_rs2_data);
-                3'b111: ex_branch_taken = (ex_rs1_data >= ex_rs2_data);
+                3'b000: ex_branch_taken = (fwd_rs1_data == fwd_rs2_data);
+                3'b001: ex_branch_taken = (fwd_rs1_data != fwd_rs2_data);
+                3'b100: ex_branch_taken = ($signed(fwd_rs1_data) < $signed(fwd_rs2_data));
+                3'b101: ex_branch_taken = ($signed(fwd_rs1_data) >= $signed(fwd_rs2_data));
+                3'b110: ex_branch_taken = (fwd_rs1_data < fwd_rs2_data);
+                3'b111: ex_branch_taken = (fwd_rs1_data >= fwd_rs2_data);
                 default: ex_branch_taken = 1'b0;
             endcase
         end
@@ -456,7 +461,7 @@ input  wire        clk,
 
     // Branch/jump target
     assign ex_branch_target = ex_jump   ? (ex_pc + ex_imm) :           // JAL
-                              ex_jalr   ? ((ex_rs1_data + ex_imm) & 32'hFFFFFFFE) : // JALR
+                              ex_jalr   ? ((fwd_rs1_data + ex_imm) & 32'hFFFFFFFE) : // JALR
                               (ex_pc + ex_imm);                        // Branch (imm_b already selected)
 
     // ============================================================
@@ -468,7 +473,7 @@ input  wire        clk,
         .rst_n           (rst_n),
         .flush           (ex_flush),
         .alu_result_in   (ex_result),
-        .rs2_data_in     (ex_rs2_data),
+        .rs2_data_in     (fwd_rs2_data),
         .rd_in           (ex_rd),
         .funct3_in       (ex_funct3),
         .reg_write_in    (ex_reg_write),
