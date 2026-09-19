@@ -6,7 +6,7 @@ CORE  := rtl/core/regfile.v rtl/core/decoder.v rtl/core/alu.v \
 	     rtl/core/dmem.v rtl/core/pipeline_regs.v rtl/core/forwarding_unit.v \
 	     rtl/core/muldiv.v rtl/core/csr_unit.v rtl/core/rv32_pipeline.v
 ACCEL := rtl/accel/nmc_psum.v rtl/accel/nmc_threshold.v \
-	     rtl/accel/nmc_pool_reduce.v rtl/accel/nmc_unit.v
+	     rtl/accel/nmc_pool_reduce.v rtl/accel/nmc_unit.v rtl/accel/cim_sequencer.v rtl/accel/xif_bridge.v
 SOC   := rtl/soc/soc_top.v
 SRC   := $(CORE) $(ACCEL) $(SOC)
 

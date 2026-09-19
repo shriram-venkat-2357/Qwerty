@@ -16,25 +16,5 @@ module soc_top #(
         .pc_out (pc_out)
     );
 
-`ifdef NMC
-    wire        nmc_out_valid;
-    wire [31:0] nmc_out_data;
-
-    nmc_unit u_nmc (
-        .clk       (clk),
-        .rst_n     (rst_n),
-        .we_row    (1'b0),
-        .wr_row    (7'd0),
-        .wr_data   (32'd0),
-        .we_thr    (1'b0),
-        .thr_addr  (5'd0),
-        .thr_data  (32'd0),
-        .shift_amt (3'd0),
-        .act_valid (1'b0),
-        .act_in    (128'd0),
-        .out_valid (nmc_out_valid),
-        .out_data  (nmc_out_data)
-    );
-`endif
 
 endmodule

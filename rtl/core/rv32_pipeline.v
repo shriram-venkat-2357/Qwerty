@@ -135,6 +135,19 @@ input  wire        clk,
     wire        id_stall;
     wire        id_flush;
     wire        ex_flush;
+    // --- NMC dispatch wires (driven under `ifdef NMC at bottom) ---
+    wire        nmc_issue, nmc_stall, nmc_rd_sel;
+    wire [2:0]  nmc_funct3;
+    wire [31:0] nmc_rs1, nmc_rs2;
+    wire [31:0] nmc_rd_data;
+    wire [31:0] seq_b_addr, dmem_b_rdata;
+    wire        seq_we_row, seq_act_valid;
+    wire [6:0]  seq_wr_row;
+    wire [31:0] seq_wr_data;
+    wire [127:0] seq_act_out;
+    wire        nmc_out_valid;
+    wire [31:0] nmc_out_data;
+    wire        seq_busy, seq_done, seq_error, seq_ready;
 
     // --- Forwarding ---
     wire [1:0] forward_a;
@@ -224,9 +237,11 @@ input  wire        clk,
         .rdata2 (id_rs2_data)
     );
     // csrr* instructions write rd (ecall/mret do not)
-    wire id_csr_read      = (id_opcode == 7'h73) && (id_funct3 != 3'b000);
-    wire id_reg_write_eff = id_reg_write || id_csr_read;
     // Immediate selection
+    wire id_csr_read      = (id_opcode == 7'h73) && (id_funct3 != 3'b000);
+    wire id_nmc_rd        = (id_opcode == 7'h0B) && (id_funct3 == 3'b011);
+    wire id_reg_write_eff = id_reg_write || id_csr_read || id_nmc_rd;
+
     assign id_imm_sel = (id_opcode == 7'b0010011) ? id_imm_i :  // I-type
                         (id_opcode == 7'b0000011) ? id_imm_i :  // Load
                         (id_opcode == 7'b0100011) ? id_imm_s :  // Store
@@ -252,9 +267,9 @@ input  wire        clk,
          (ex_rd == id_rs2 && id_opcode != 7'b0110111 && id_opcode != 7'b0010111 && id_opcode != 7'b1101111));
 
     wire branch_flush = (mem_branch && mem_branch_taken) || mem_jump;
-
-    assign if_stall = load_use_hazard && !branch_flush && !ex_trap && !ex_mret;
-    assign id_stall = 1'b0;   // ID/EX must never hold
+    assign if_stall = (load_use_hazard && !branch_flush && !ex_trap && !ex_mret)
+                      || nmc_stall;
+    assign id_stall = nmc_stall;   // holds nmc.rd in EX until sequencer idle
     assign id_flush = branch_flush || (load_use_hazard && !branch_flush)
                                    || ex_trap || ex_mret;
     assign ex_flush = branch_flush || ex_trap;   // trap instr must not reach MEM
@@ -413,7 +428,7 @@ input  wire        clk,
         .trap_we     (ex_trap),
         .trap_mepc   (ex_pc),
         .trap_cause  (ex_trap_cause),
-        .nmc_status_in (32'd0),   // rewired to sequencer in step 5.3
+        .nmc_status_in ({28'd0, seq_ready, seq_error, seq_done, seq_busy}),
         .mtvec_q     (csr_mtvec),
         .mepc_q      (csr_mepc)
     );
@@ -421,8 +436,8 @@ input  wire        clk,
     // EX result MUX: M-ext / CSR / normal ALU
     assign ex_result = ex_is_m_ext ? ex_muldiv_result :
                        ex_is_csr   ? ex_csr_rdata     :
+                       nmc_rd_sel  ? nmc_rd_data      :
                        ex_alu_result;
-
     // Branch condition evaluation
     always @(*) begin
         ex_branch_taken = 1'b0;
@@ -489,6 +504,8 @@ input  wire        clk,
         .funct3    (mem_funct3),
         .addr      (mem_alu_result),
         .wdata     (mem_rs2_data),
+        .b_addr    (seq_b_addr),
+        .b_rdata   (dmem_b_rdata),
         .rdata     (mem_rdata)
     );
 
@@ -528,5 +545,70 @@ input  wire        clk,
     assign wb_write_data = wb_mem_to_reg ? wb_mem_rdata : wb_alu_result;
 
     assign pc_out = pc;
+
+`ifdef NMC
+    xif_bridge u_bridge (
+        .opcode      (ex_opcode),
+        .funct3      (ex_funct3),
+        .rs1_data    (fwd_rs1_data),
+        .rs2_data    (fwd_rs2_data),
+        .flush       (branch_flush || ex_trap),
+        .busy        (seq_busy),
+        .issue       (nmc_issue),
+        .seq_funct3  (nmc_funct3),
+        .seq_rs1     (nmc_rs1),
+        .seq_rs2     (nmc_rs2),
+        .rd_stall    (nmc_stall),
+        .rd_sel      (nmc_rd_sel)
+    );
+
+    cim_sequencer u_seq (
+        .clk        (clk),
+        .rst_n      (rst_n),
+        .issue      (nmc_issue),
+        .funct3     (nmc_funct3),
+        .rs1        (nmc_rs1),
+        .rs2        (nmc_rs2),
+        .rd_data    (nmc_rd_data),
+        .busy       (seq_busy),
+        .done_q     (seq_done),
+        .error_q    (seq_error),
+        .ready      (seq_ready),
+        .we_row     (seq_we_row),
+        .wr_row     (seq_wr_row),
+        .wr_data    (seq_wr_data),
+        .act_valid  (seq_act_valid),
+        .act_out    (seq_act_out),
+        .pool_valid (nmc_out_valid),
+        .pool_data  (nmc_out_data),
+        .b_addr     (seq_b_addr),
+        .b_rdata    (dmem_b_rdata)
+    );
+
+    nmc_unit u_nmc (
+        .clk        (clk),
+        .rst_n      (rst_n),
+        .we_row     (seq_we_row),
+        .wr_row     (seq_wr_row),
+        .wr_data    (seq_wr_data),
+        .we_thr     (1'b0),
+        .thr_addr   (5'd0),
+        .thr_data   (32'd0),
+        .shift_amt  (3'd0),
+        .act_valid  (seq_act_valid),
+        .act_in     (seq_act_out),
+        .out_valid  (nmc_out_valid),
+        .out_data   (nmc_out_data)
+    );
+`else
+    assign nmc_stall  = 1'b0;
+    assign nmc_rd_sel = 1'b0;
+    assign nmc_rd_data = 32'd0;
+    assign seq_b_addr = 32'd0;
+    assign seq_busy   = 1'b0;
+    assign seq_done   = 1'b0;
+    assign seq_error  = 1'b0;
+    assign seq_ready  = 1'b0;
+`endif
 
 endmodule
