@@ -42,6 +42,4 @@ module tb_program;
             $finish;
         end
     end
-    always @(posedge clk) if (cycles < 15) $display("dbg %0d pc=%h instr=%h", cycles, dut.pc, dut.instr);
-    always @(posedge clk) if (dut.mem_mem_write) $display("STORE addr=%h data=%h f3=%b pc=%h", dut.mem_alu_result, dut.mem_rs2_data, dut.mem_funct3, pc_out);
 endmodule
