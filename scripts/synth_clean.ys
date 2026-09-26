@@ -1,0 +1,27 @@
+# Week 6 synthesis cleanup audit - Build C (core + nmc_unit)
+read_verilog -DNMC rtl/core/regfile.v rtl/core/decoder.v rtl/core/alu.v rtl/core/alu_control.v rtl/core/control_unit.v
+read_verilog -DNMC rtl/core/imem.v rtl/core/dmem.v rtl/core/pipeline_regs.v rtl/core/forwarding_unit.v rtl/core/muldiv.v rtl/core/csr_unit.v
+read_verilog -DNMC rtl/core/rv32_pipeline.v
+read_verilog -DNMC rtl/accel/nmc_psum.v rtl/accel/nmc_threshold.v rtl/accel/nmc_pool_reduce.v rtl/accel/nmc_unit.v
+read_verilog -DNMC rtl/accel/cim_sequencer.v rtl/accel/xif_bridge.v
+read_verilog -DNMC rtl/soc/soc_top.v
+
+hierarchy -top soc_top -check
+proc
+opt
+
+# ---- THE AUDIT: latches and storage elements we did not intend ----
+select -count t:$dlatch
+select -count t:$dlatchsr
+select -count t:$sr
+check -assert
+
+memory
+opt
+techmap
+opt
+dfflibmap -liberty /home/shriram_venkat/pdk/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+abc -liberty /home/shriram_venkat/pdk/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+opt_clean
+stat
+stat -liberty /home/shriram_venkat/pdk/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
