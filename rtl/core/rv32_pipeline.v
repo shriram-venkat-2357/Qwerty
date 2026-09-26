@@ -134,6 +134,7 @@ input  wire        clk,
     wire        if_stall;
     wire        id_stall;
     wire        id_flush;
+    wire        ifid_flush;
     wire        ex_flush;
     // --- NMC dispatch wires (driven under `ifdef NMC at bottom) ---
     wire        nmc_issue, nmc_stall, nmc_rd_sel;
@@ -367,8 +368,8 @@ input  wire        clk,
                                 ex_rs2_data;
 
     // ALU inputs (using forwarded values)
-    assign ex_alu_a = ex_auipc ? ex_pc : fwd_rs1_data;
-    assign ex_alu_b = ex_alu_src ? ex_imm : fwd_rs2_data;
+    assign ex_alu_a = ex_lui ? 32'd0 : ex_auipc ? ex_pc : fwd_rs1_data;
+    assign ex_alu_b = (ex_alu_src | ex_lui) ? ex_imm : fwd_rs2_data;
 
     alu u_alu (
         .a     (ex_alu_a),
@@ -439,7 +440,7 @@ input  wire        clk,
     );
 
     // EX result MUX: M-ext / CSR / normal ALU
-    assign ex_result = ex_is_m_ext ? ex_muldiv_result :
+    assign ex_result = (ex_jump | ex_jalr) ? (ex_pc + 32'd4) : ex_is_m_ext ? ex_muldiv_result :
                        ex_is_csr   ? ex_csr_rdata     :
                        nmc_rd_sel  ? nmc_rd_data      :
                        ex_alu_result;
@@ -481,7 +482,7 @@ input  wire        clk,
         .mem_write_in    (ex_mem_write),
         .mem_to_reg_in   (ex_mem_to_reg),
         .branch_in       (ex_branch),
-        .jump_in         (ex_jump),
+        .jump_in         (ex_jump | ex_jalr),
         .branch_taken_in (ex_branch_taken),
         .branch_target_in(ex_branch_target),
         .alu_result_out  (mem_alu_result),

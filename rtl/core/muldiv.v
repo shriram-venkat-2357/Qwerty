@@ -17,6 +17,8 @@ module muldiv (
 
     wire signed [31:0] sa = a;
     wire signed [31:0] sb = b;
+    wire signed [31:0] s_div = sa / sb;
+    wire signed [31:0] s_rem = sa % sb;
 
     always @(*) begin
         case (funct3)
@@ -26,11 +28,11 @@ module muldiv (
             3'b011:  result = u_prod[63:32];                                 // MULHU
             3'b100:  result = div_by_zero ? 32'hFFFF_FFFF :
                               overflow    ? 32'h8000_0000 :
-                              (sa / sb);                                     // DIV
+                              s_div;                                     // DIV
             3'b101:  result = div_by_zero ? 32'hFFFF_FFFF : (a / b);         // DIVU
             3'b110:  result = div_by_zero ? a :
                               overflow    ? 32'd0 :
-                              (sa % sb);                                     // REM
+                              s_rem;                                     // REM
             3'b111:  result = div_by_zero ? a : (a % b);                     // REMU
             default: result = 32'd0;
         endcase
