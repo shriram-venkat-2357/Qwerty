@@ -17,16 +17,16 @@ module tb_nmc_instr;
         #20000;   // 2000 cycles — plenty for 23 instructions + accelerator ops
 
         // ldw moved 4 all-ones words from dmem into weight rows 0..3
-        if (u_cpu.u_nmc.wmem[0] !== 32'hFFFFFFFF ||
-            u_cpu.u_nmc.wmem[3] !== 32'hFFFFFFFF) begin
+        if (u_cpu.u_nmc.wmem[0*32 +: 32] !== 32'hFFFFFFFF ||
+            u_cpu.u_nmc.wmem[3*32 +: 32] !== 32'hFFFFFFFF) begin
             errs = errs+1; $display("FAIL weights: %h %h",
-                u_cpu.u_nmc.wmem[0], u_cpu.u_nmc.wmem[3]); end
+                u_cpu.u_nmc.wmem[0*32 +: 32], u_cpu.u_nmc.wmem[3*32 +: 32]); end
 
         // run streamed 2 all-ones activation vectors: dot=+128 each,
         // clr on pos0 then accumulate on pos1 -> 256 in every column
-        if (u_cpu.u_nmc.u_psum.acc[0]  !== 32'd256 ||
-            u_cpu.u_nmc.u_psum.acc[31] !== 32'd256) begin
-            errs = errs+1; $display("FAIL acc: %0d", u_cpu.u_nmc.u_psum.acc[0]); end
+        if (u_cpu.u_nmc.u_psum.acc[0*32 +: 32]  !== 32'd256 ||
+            u_cpu.u_nmc.u_psum.acc[31*32 +: 32] !== 32'd256) begin
+            errs = errs+1; $display("FAIL acc: %0d", u_cpu.u_nmc.u_psum.acc[0*32 +: 32]); end
 
         // rd x6 returned the (zero) result register — proves rd executed
         if (u_cpu.u_regfile.regs[6] !== 32'd0) begin
