@@ -133,7 +133,8 @@ module cim_sequencer #(
     end
 
 
-    // --- Verilog Assertions for Sequencer Correctness (Week 5) ---
+    `ifndef SYNTHESIS
+// --- Verilog Assertions for Sequencer Correctness (Week 5) ---
     // 1. Never leave IDLE without a valid funct3
     always @(posedge clk or negedge rst_n) begin
         if (rst_n && state == IDLE && issue) begin
@@ -147,4 +148,5 @@ module cim_sequencer #(
         if (rst_n && (state != IDLE) && done_q)
             $error("ASSERT FAIL: done_q asserted while busy (state != IDLE)");
     end
+`endif
 endmodule
