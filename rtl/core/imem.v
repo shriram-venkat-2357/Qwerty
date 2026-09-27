@@ -12,6 +12,6 @@ module imem #(
 
     // Initialize memory from file
     initial begin
-        //$readmemh(FILE, mem);
+        $readmemh(FILE, mem);
     end
 endmodule
