@@ -1,9 +1,7 @@
-riscv-tests/
-build/
-training/data/
-training/__pycache__/
-verif/test_nmc
-build/
-*.swp
-*.swo
-*~
+runs/
+*.out
+*.vcd
+*.fst
+soc_top_gls.v
+primitives.v
+sky130_fd_sc_hd.v

@@ -1,0 +1,3 @@
+(* blackbox *) module alu; endmodule
+(* blackbox *) module regfile; endmodule
+# ...add blackboxes for other components if needed...
