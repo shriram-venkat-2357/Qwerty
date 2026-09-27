@@ -12,8 +12,12 @@ module regfile (
     reg [31:0] regs [0:31];
 
     // x0 is always 0
-    assign rdata1 = (raddr1 == 5'd0) ? 32'd0 : regs[raddr1];
-    assign rdata2 = (raddr2 == 5'd0) ? 32'd0 : regs[raddr2];
+    // write-through: a read during the write cycle returns the new value
+    // (fixes distance-3 dependencies: producer in WB while consumer reads in ID)
+    assign rdata1 = (raddr1 == 5'd0) ? 32'd0 :
+                    (we && waddr == raddr1) ? wdata : regs[raddr1];
+    assign rdata2 = (raddr2 == 5'd0) ? 32'd0 :
+                    (we && waddr == raddr2) ? wdata : regs[raddr2];
 
     always @(posedge clk) begin
         if (we && (waddr != 5'd0)) begin

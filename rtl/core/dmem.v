@@ -5,7 +5,9 @@ module dmem (
     input  wire [2:0]  funct3,
     input  wire [31:0] addr,
     input  wire [31:0] wdata,
-    output reg  [31:0] rdata
+    output reg  [31:0] rdata,
+    input  wire [31:0] b_addr,
+    output wire [31:0] b_rdata
 );
 
     // 256 words of data memory
@@ -18,6 +20,9 @@ module dmem (
         for (i = 0; i < 1024; i = i + 1)
             mem[i] = 8'd0;
     end
+
+    assign b_rdata = {mem[b_addr[9:0]+3], mem[b_addr[9:0]+2],
+                      mem[b_addr[9:0]+1], mem[b_addr[9:0]]};
 
     // Read (combinational)
     always @(*) begin

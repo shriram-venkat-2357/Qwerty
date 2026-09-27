@@ -82,10 +82,13 @@ module control_unit (
             end
             OP_LUI: begin
                 lui       = 1'b1;
+                alu_op    = 2'b10;
                 reg_write = 1'b1;
             end
             OP_AUIPC: begin
                 auipc     = 1'b1;
+                alu_src   = 1'b1;
+                alu_op    = 2'b10;
                 reg_write = 1'b1;
             end
             default: begin

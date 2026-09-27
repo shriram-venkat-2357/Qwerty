@@ -1,5 +1,7 @@
-module rv32_pipeline (
-    input  wire        clk,
+module rv32_pipeline #(
+    parameter IMEM_FILE = "program.hex"
+) (
+input  wire        clk,
     input  wire        rst_n,
     output wire [31:0] pc_out
 );
@@ -79,6 +81,13 @@ module rv32_pipeline (
     wire ex_is_m_ext = (ex_opcode == 7'b0110011) && (ex_funct7 == 7'b0000001);
     wire ex_is_csr   = (ex_opcode == 7'b1110011);
     wire [31:0] ex_result;
+    wire        ex_trap;
+    wire        ex_mret;
+    wire [31:0] ex_trap_cause;
+    wire        ex_csr_we;
+    reg  [31:0] ex_csr_new;
+    wire [31:0] csr_mtvec;
+    wire [31:0] csr_mepc;
     wire [3:0]  ex_alu_ctrl;
     wire [31:0] ex_alu_a;
     wire [31:0] ex_alu_b;
@@ -125,7 +134,21 @@ module rv32_pipeline (
     wire        if_stall;
     wire        id_stall;
     wire        id_flush;
+    wire        ifid_flush;
     wire        ex_flush;
+    // --- NMC dispatch wires (driven under `ifdef NMC at bottom) ---
+    wire        nmc_issue, nmc_stall, nmc_rd_sel;
+    wire [2:0]  nmc_funct3;
+    wire [31:0] nmc_rs1, nmc_rs2;
+    wire [31:0] nmc_rd_data;
+    wire [31:0] seq_b_addr, dmem_b_rdata;
+    wire        seq_we_row, seq_act_valid;
+    wire [6:0]  seq_wr_row;
+    wire [31:0] seq_wr_data;
+    wire [127:0] seq_act_out;
+    wire        nmc_out_valid;
+    wire [31:0] nmc_out_data;
+    wire        seq_busy, seq_done, seq_error, seq_ready;
 
     // --- Forwarding ---
     wire [1:0] forward_a;
@@ -134,18 +157,19 @@ module rv32_pipeline (
     // IF STAGE
     // ============================================================
 
-    imem u_imem (
+    imem #(.FILE(IMEM_FILE)) u_imem (
         .addr  (pc),
         .instr (instr)
     );
 
     // PC update logic
     wire [31:0] next_pc;
-    assign next_pc = (mem_branch && mem_branch_taken) ? mem_branch_target :
+    assign next_pc = ex_trap                           ? csr_mtvec :
+                     ex_mret                           ? csr_mepc  :
+                     (mem_branch && mem_branch_taken)  ? mem_branch_target :
                      (mem_jump)                        ? mem_branch_target :
                      if_stall                          ? pc :
                      pc_plus4;
-
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n)
             pc <= 32'h0000_0000;
@@ -161,7 +185,7 @@ module rv32_pipeline (
         .clk      (clk),
         .rst_n    (rst_n),
         .stall    (if_stall),
-        .flush    (id_flush),
+        .flush       (if_id_flush),
         .pc_in    (pc),
         .instr_in (instr),
         .pc_out   (if_id_pc),
@@ -213,8 +237,12 @@ module rv32_pipeline (
         .rdata1 (id_rs1_data),
         .rdata2 (id_rs2_data)
     );
-
+    // csrr* instructions write rd (ecall/mret do not)
     // Immediate selection
+    wire id_csr_read      = (id_opcode == 7'h73) && (id_funct3 != 3'b000);
+    wire id_nmc_rd        = (id_opcode == 7'h0B) && (id_funct3 == 3'b011);
+    wire id_reg_write_eff = id_reg_write || id_csr_read || id_nmc_rd;
+
     assign id_imm_sel = (id_opcode == 7'b0010011) ? id_imm_i :  // I-type
                         (id_opcode == 7'b0000011) ? id_imm_i :  // Load
                         (id_opcode == 7'b0100011) ? id_imm_s :  // Store
@@ -240,12 +268,17 @@ module rv32_pipeline (
          (ex_rd == id_rs2 && id_opcode != 7'b0110111 && id_opcode != 7'b0010111 && id_opcode != 7'b1101111));
 
     wire branch_flush = (mem_branch && mem_branch_taken) || mem_jump;
+    // custom-0 waits in ID (bubbling EX) until the sequencer is idle:
+    // operands stay correct via regfile re-read + normal forwarding
+    wire nmc_wait = (id_opcode == 7'h0B) && (seq_busy || nmc_issue) && !branch_flush;
 
-    assign if_stall = load_use_hazard && !branch_flush;
+    assign if_stall = (load_use_hazard && !branch_flush && !ex_trap && !ex_mret)
+                      || nmc_wait;
     assign id_stall = 1'b0;   // ID/EX must never hold
-    assign id_flush = branch_flush || (load_use_hazard && !branch_flush);
-    assign ex_flush = branch_flush;
-
+    wire if_id_flush = branch_flush || ex_trap || ex_mret;  // kill IF/ID only on wrong path
+    assign id_flush  = branch_flush || (load_use_hazard && !branch_flush)
+                                    || ex_trap || ex_mret || nmc_wait;  // bubble ID/EX
+    assign ex_flush = branch_flush || ex_trap;   // trap instr must not reach MEM
     // ============================================================
     // ID/EX PIPELINE REGISTER
     // ============================================================
@@ -266,7 +299,7 @@ module rv32_pipeline (
         .funct3_in     (id_funct3),
         .funct7_in     (id_funct7),
         .opcode_in     (id_opcode),
-        .reg_write_in  (id_reg_write),
+        .reg_write_in  (id_reg_write_eff),
         .mem_read_in   (id_mem_read),
         .mem_write_in  (id_mem_write),
         .mem_to_reg_in (id_mem_to_reg),
@@ -335,8 +368,8 @@ module rv32_pipeline (
                                 ex_rs2_data;
 
     // ALU inputs (using forwarded values)
-    assign ex_alu_a = ex_auipc ? ex_pc : fwd_rs1_data;
-    assign ex_alu_b = ex_alu_src ? ex_imm : fwd_rs2_data;
+    assign ex_alu_a = ex_lui ? 32'd0 : ex_auipc ? ex_pc : fwd_rs1_data;
+    assign ex_alu_b = (ex_alu_src | ex_lui) ? ex_imm : fwd_rs2_data;
 
     alu u_alu (
         .a     (ex_alu_a),
@@ -347,37 +380,81 @@ module rv32_pipeline (
     );
     // RV32M unit
     muldiv u_muldiv (
-        .a      (ex_rs1_data),
-        .b      (ex_rs2_data),
+        .a      (fwd_rs1_data),
+        .b      (fwd_rs2_data),
         .funct3 (ex_funct3),
         .result (ex_muldiv_result)
     );
 
-    // Zicsr counters (instret increments when a real instruction enters)
+    // ---- SYSTEM decode in EX ----
+    wire ex_system  = (ex_opcode == 7'h73);
+    wire ex_ecall   = ex_system && (ex_funct3 == 3'b000) && (ex_imm[11:0] == 12'h000);
+    assign ex_mret  = ex_system && (ex_funct3 == 3'b000) && (ex_imm[11:0] == 12'h302);
+
+    wire ex_legal_opcode = (ex_opcode == 7'h37) || (ex_opcode == 7'h17) ||
+                           (ex_opcode == 7'h6F) || (ex_opcode == 7'h67) ||
+                           (ex_opcode == 7'h63) || (ex_opcode == 7'h03) ||
+                           (ex_opcode == 7'h23) || (ex_opcode == 7'h13) ||
+                           (ex_opcode == 7'h33) || (ex_opcode == 7'h73) ||
+                           (ex_opcode == 7'h0B);   // custom-0 = legal NOP stub
+
+    wire ex_illegal = (!ex_legal_opcode) ||
+                      (ex_system && (ex_funct3 == 3'b000) &&
+                       (ex_imm[11:0] != 12'h000) && (ex_imm[11:0] != 12'h302));
+
+    assign ex_trap       = ex_ecall || ex_illegal;
+    assign ex_trap_cause = ex_ecall ? 32'd11 : 32'd2;  // 11=M-mode ecall, 2=illegal
+
+    // ---- CSR read-modify-write value (computed in EX) ----
+    wire [31:0] ex_csr_src = ex_funct3[2] ? {27'd0, ex_instr[19:15]} : fwd_rs1_data;
+
+    always @(*) begin
+        case (ex_funct3[1:0])
+            2'b01:   ex_csr_new = ex_csr_src;                  // csrrw(i)
+            2'b10:   ex_csr_new = ex_csr_rdata | ex_csr_src;   // csrrs(i)
+            default: ex_csr_new = ex_csr_rdata & ~ex_csr_src;  // csrrc(i)
+        endcase
+    end
+
+    // Write enable per spec: csrrw(i) always; csrrs/c only if src != 0.
+    // Killed if this instruction is on a wrong path (flush) or is a trap.
+    assign ex_csr_we = ex_system && (ex_funct3 != 3'b000) &&
+                       ((ex_funct3[1:0] == 2'b01) || (ex_csr_src != 32'd0)) &&
+                       !branch_flush && !ex_trap;
+
     csr_unit u_csr (
         .clk         (clk),
         .rst_n       (rst_n),
         .instret_inc (~if_stall & ~id_flush),
-        .addr        (ex_imm[11:0]),
-        .rdata       (ex_csr_rdata)
+        .raddr       (ex_imm[11:0]),
+        .rdata       (ex_csr_rdata),
+        .we          (ex_csr_we),
+        .waddr       (ex_imm[11:0]),
+        .wdata       (ex_csr_new),
+        .trap_we     (ex_trap),
+        .trap_mepc   (ex_pc),
+        .trap_cause  (ex_trap_cause),
+        .nmc_status_in ({28'd0, seq_ready, seq_error, seq_done, seq_busy}),
+        .mtvec_q     (csr_mtvec),
+        .mepc_q      (csr_mepc)
     );
 
     // EX result MUX: M-ext / CSR / normal ALU
-    assign ex_result = ex_is_m_ext ? ex_muldiv_result :
+    assign ex_result = (ex_jump | ex_jalr) ? (ex_pc + 32'd4) : ex_is_m_ext ? ex_muldiv_result :
                        ex_is_csr   ? ex_csr_rdata     :
+                       nmc_rd_sel  ? nmc_rd_data      :
                        ex_alu_result;
-
     // Branch condition evaluation
     always @(*) begin
         ex_branch_taken = 1'b0;
         if (ex_branch) begin
             case (ex_funct3)
-                3'b000: ex_branch_taken = (ex_rs1_data == ex_rs2_data);
-                3'b001: ex_branch_taken = (ex_rs1_data != ex_rs2_data);
-                3'b100: ex_branch_taken = ($signed(ex_rs1_data) < $signed(ex_rs2_data));
-                3'b101: ex_branch_taken = ($signed(ex_rs1_data) >= $signed(ex_rs2_data));
-                3'b110: ex_branch_taken = (ex_rs1_data < ex_rs2_data);
-                3'b111: ex_branch_taken = (ex_rs1_data >= ex_rs2_data);
+                3'b000: ex_branch_taken = (fwd_rs1_data == fwd_rs2_data);
+                3'b001: ex_branch_taken = (fwd_rs1_data != fwd_rs2_data);
+                3'b100: ex_branch_taken = ($signed(fwd_rs1_data) < $signed(fwd_rs2_data));
+                3'b101: ex_branch_taken = ($signed(fwd_rs1_data) >= $signed(fwd_rs2_data));
+                3'b110: ex_branch_taken = (fwd_rs1_data < fwd_rs2_data);
+                3'b111: ex_branch_taken = (fwd_rs1_data >= fwd_rs2_data);
                 default: ex_branch_taken = 1'b0;
             endcase
         end
@@ -385,7 +462,7 @@ module rv32_pipeline (
 
     // Branch/jump target
     assign ex_branch_target = ex_jump   ? (ex_pc + ex_imm) :           // JAL
-                              ex_jalr   ? ((ex_rs1_data + ex_imm) & 32'hFFFFFFFE) : // JALR
+                              ex_jalr   ? ((fwd_rs1_data + ex_imm) & 32'hFFFFFFFE) : // JALR
                               (ex_pc + ex_imm);                        // Branch (imm_b already selected)
 
     // ============================================================
@@ -397,7 +474,7 @@ module rv32_pipeline (
         .rst_n           (rst_n),
         .flush           (ex_flush),
         .alu_result_in   (ex_result),
-        .rs2_data_in     (ex_rs2_data),
+        .rs2_data_in     (fwd_rs2_data),
         .rd_in           (ex_rd),
         .funct3_in       (ex_funct3),
         .reg_write_in    (ex_reg_write),
@@ -405,7 +482,7 @@ module rv32_pipeline (
         .mem_write_in    (ex_mem_write),
         .mem_to_reg_in   (ex_mem_to_reg),
         .branch_in       (ex_branch),
-        .jump_in         (ex_jump),
+        .jump_in         (ex_jump | ex_jalr),
         .branch_taken_in (ex_branch_taken),
         .branch_target_in(ex_branch_target),
         .alu_result_out  (mem_alu_result),
@@ -433,6 +510,8 @@ module rv32_pipeline (
         .funct3    (mem_funct3),
         .addr      (mem_alu_result),
         .wdata     (mem_rs2_data),
+        .b_addr    (seq_b_addr),
+        .b_rdata   (dmem_b_rdata),
         .rdata     (mem_rdata)
     );
 
@@ -472,5 +551,70 @@ module rv32_pipeline (
     assign wb_write_data = wb_mem_to_reg ? wb_mem_rdata : wb_alu_result;
 
     assign pc_out = pc;
+
+`ifdef NMC
+    xif_bridge u_bridge (
+        .opcode      (ex_opcode),
+        .funct3      (ex_funct3),
+        .rs1_data    (fwd_rs1_data),
+        .rs2_data    (fwd_rs2_data),
+        .flush       (branch_flush || ex_trap),
+        .busy        (seq_busy),
+        .issue       (nmc_issue),
+        .seq_funct3  (nmc_funct3),
+        .seq_rs1     (nmc_rs1),
+        .seq_rs2     (nmc_rs2),
+        .rd_stall    (nmc_stall),
+        .rd_sel      (nmc_rd_sel)
+    );
+
+    cim_sequencer u_seq (
+        .clk        (clk),
+        .rst_n      (rst_n),
+        .issue      (nmc_issue),
+        .funct3     (nmc_funct3),
+        .rs1        (nmc_rs1),
+        .rs2        (nmc_rs2),
+        .rd_data    (nmc_rd_data),
+        .busy       (seq_busy),
+        .done_q     (seq_done),
+        .error_q    (seq_error),
+        .ready      (seq_ready),
+        .we_row     (seq_we_row),
+        .wr_row     (seq_wr_row),
+        .wr_data    (seq_wr_data),
+        .act_valid  (seq_act_valid),
+        .act_out    (seq_act_out),
+        .pool_valid (nmc_out_valid),
+        .pool_data  (nmc_out_data),
+        .b_addr     (seq_b_addr),
+        .b_rdata    (dmem_b_rdata)
+    );
+
+    nmc_unit u_nmc (
+        .clk        (clk),
+        .rst_n      (rst_n),
+        .we_row     (seq_we_row),
+        .wr_row     (seq_wr_row),
+        .wr_data    (seq_wr_data),
+        .we_thr     (1'b0),
+        .thr_addr   (5'd0),
+        .thr_data   (32'd0),
+        .shift_amt  (3'd0),
+        .act_valid  (seq_act_valid),
+        .act_in     (seq_act_out),
+        .out_valid  (nmc_out_valid),
+        .out_data   (nmc_out_data)
+    );
+`else
+    assign nmc_stall  = 1'b0;
+    assign nmc_rd_sel = 1'b0;
+    assign nmc_rd_data = 32'd0;
+    assign seq_b_addr = 32'd0;
+    assign seq_busy   = 1'b0;
+    assign seq_done   = 1'b0;
+    assign seq_error  = 1'b0;
+    assign seq_ready  = 1'b0;
+`endif
 
 endmodule
