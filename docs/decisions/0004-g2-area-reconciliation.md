@@ -4,3 +4,8 @@ Status: accepted (C, Wk7). Numbers 0002 (nmc.cfg) and 0003 (G2 final call) reser
 - 1,746,603 µm² (A Wk6 build-C): logic + FF-mapped memories at older sizes.
 - 977,838 µm² (Wk7, reports/g2_stat.txt): true logic-only, memories black-boxed.
 - Delta ≈2.38M µm² is FF-mapped memory, not logic. Reproduce: scripts/g2_area_gate.sh
+
+## Flow roles (post-28582e4 canonicalization)
+- scripts/synth_clean.ys (A): generic-gate audit netlist (build/soc_gate.v); no liberty mapping.
+- scripts/g2_area_gate.sh (C): logic-only liberty area gate (synth_logic_only.ys + stat -liberty,
+  memories black-boxed). Authoritative for G2 and die-budget numbers.
