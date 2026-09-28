@@ -1,4 +1,3 @@
-# Canonical Week-6 synthesis: latch/multi-driver audit + liberty mapping + area + structural export
 read_verilog -DNMC rtl/core/regfile.v rtl/core/decoder.v rtl/core/alu.v rtl/core/alu_control.v rtl/core/control_unit.v
 read_verilog -DNMC rtl/core/imem.v rtl/core/dmem.v rtl/core/pipeline_regs.v rtl/core/forwarding_unit.v rtl/core/muldiv.v rtl/core/csr_unit.v
 read_verilog -DNMC rtl/core/rv32_pipeline.v
@@ -8,20 +7,7 @@ read_verilog -DNMC rtl/soc/soc_top.v
 hierarchy -top soc_top -check
 proc
 opt
-# ---- AUDIT: no inferred latches, no multi-driver nets ----
 select -count t:$dlatch
 select -count t:$dlatchsr
 select -count t:$sr
 check -assert
-memory
-opt
-techmap
-opt
-dfflibmap -liberty /home/shriram_venkat/pdk/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-abc -liberty /home/shriram_venkat/pdk/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-opt_clean
-stat -liberty /home/shriram_venkat/pdk/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-flatten
-splitnets
-opt_clean -purge
-write_verilog -noattr -noexpr -nohex -nodec -defparam build/soc_top_synth.v
