@@ -1,0 +1,27 @@
+# Canonical Week-6 synthesis: latch/multi-driver audit + liberty mapping + area + structural export
+read_verilog -DNMC rtl/core/regfile.v rtl/core/decoder.v rtl/core/alu.v rtl/core/alu_control.v rtl/core/control_unit.v
+read_verilog -DNMC rtl/core/imem.v rtl/core/dmem.v rtl/core/pipeline_regs.v rtl/core/forwarding_unit.v rtl/core/muldiv.v rtl/core/csr_unit.v
+read_verilog -DNMC rtl/core/rv32_pipeline.v
+read_verilog -DNMC rtl/accel/nmc_psum.v rtl/accel/nmc_threshold.v rtl/accel/nmc_pool_reduce.v rtl/accel/nmc_unit.v
+read_verilog -DNMC rtl/accel/cim_sequencer.v rtl/accel/xif_bridge.v
+read_verilog -DNMC rtl/soc/soc_top.v
+hierarchy -top soc_top -check
+proc
+opt
+# ---- AUDIT: no inferred latches, no multi-driver nets ----
+select -count t:$dlatch
+select -count t:$dlatchsr
+select -count t:$sr
+check -assert
+memory
+opt
+techmap
+opt
+dfflibmap -liberty @PDK_LIB@
+abc -liberty @PDK_LIB@
+opt_clean
+stat -liberty @PDK_LIB@
+flatten
+splitnets
+opt_clean -purge
+write_verilog -noattr -noexpr -nohex -nodec -defparam build/soc_top_synth.v

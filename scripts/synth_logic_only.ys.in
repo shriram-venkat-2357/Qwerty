@@ -1,0 +1,30 @@
+# Week 7: logic-only timing baseline. IMEM/DMEM treated as SRAM-macro
+# black boxes (plan 2.1); macro access time added back as a labelled assumption.
+read_verilog -DNMC rtl/core/regfile.v rtl/core/decoder.v rtl/core/alu.v rtl/core/alu_control.v rtl/core/control_unit.v
+read_verilog -DNMC rtl/core/imem.v rtl/core/dmem.v rtl/core/pipeline_regs.v rtl/core/forwarding_unit.v rtl/core/muldiv.v rtl/core/csr_unit.v
+read_verilog -DNMC rtl/core/rv32_pipeline.v
+read_verilog -DNMC rtl/accel/nmc_psum.v rtl/accel/nmc_threshold.v rtl/accel/nmc_pool_reduce.v rtl/accel/nmc_unit.v
+read_verilog -DNMC rtl/accel/cim_sequencer.v rtl/accel/xif_bridge.v
+read_verilog -DNMC rtl/soc/soc_top.v
+
+# CRITICAL: Blackbox BEFORE hierarchy elaborates parameters
+select imem
+blackbox
+select dmem
+blackbox
+select -clear
+
+hierarchy -top soc_top
+proc
+opt
+memory
+opt
+techmap
+opt
+dfflibmap -liberty @PDK_LIB@
+abc -liberty @PDK_LIB@
+opt_clean
+splitnets
+opt_clean -purge
+flatten
+write_verilog -noattr -noexpr -nohex -nodec -defparam build/soc_top_logic_only.v

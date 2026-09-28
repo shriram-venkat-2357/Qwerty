@@ -1,4 +1,4 @@
-read_liberty /home/shriram_venkat/pdk/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_liberty $::env(PDK_LIB)
 read_verilog build/soc_top_logic_only.v
 link_design soc_top
 
