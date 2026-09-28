@@ -1,0 +1,6 @@
+Failed to load tclreadline
+OpenROAD 8229a95b89b7f33589cfbf366bc11fe467f0d552 
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[ERROR IFP-0038] No design is loaded.
+Error: floorplan_phys.tcl, 5 IFP-0038
