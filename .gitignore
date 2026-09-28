@@ -8,3 +8,5 @@ sky130_fd_sc_hd.v
 build/
 *.swp
 *.swo
+data/
+train.log
