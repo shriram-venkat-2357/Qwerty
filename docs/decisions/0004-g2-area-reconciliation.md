@@ -13,5 +13,5 @@ Status: accepted (C, Wk7). Numbers 0002 (nmc.cfg) and 0003 (G2 final call) reser
 ## Correction (Wk7): parse_area.py extraction bug
 parse_area.py emitted "Total Chip Area: 0.00 um^2", making its PASSED line vacuous.
 Authoritative array area: reports/g2_array_probe_wk7.txt (scripts/area_probe.ys + stat -liberty)
-= <MEASURED> um^2 vs cap 180,973.73 um^2 -> verdict: <PASSED/FAILED>.
+= 180,973.568 um^2 vs cap 180,973.73 um^2 -> verdict: PASSED (re-probe reproduces D3 cap within 0.162 um^2; no array growth post-freeze).
 parse_area.py is deprecated for gate decisions; kept only as cell-histogram utility.
