@@ -10,3 +10,5 @@ build/
 *.swo
 data/
 train.log
+data/
+train.log
