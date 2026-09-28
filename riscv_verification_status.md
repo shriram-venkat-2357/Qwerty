@@ -1,0 +1,2 @@
+
+2026-09-29: **D8 E2E CNN Testbench Scaffolding Complete & Pushed to main**. Created `tb/tb_nmc_e2e_final.v` which successfully loads the new D4 golden artifact (`training/export/golden.txt` = `00000007`), runs the synthetic NMC layer (`tb/program_nmc.hex`), and verifies internal NMC state (weights loaded, accumulation correct, CSR status `0xA`). Full regression remains ALL PASS with baseline cycle counts. Awaiting Shriram's full `program_e2e.hex` driver to finalize the DMEM-to-golden comparison loop for the complete LeNet layer.
