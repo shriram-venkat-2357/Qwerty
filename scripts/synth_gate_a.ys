@@ -1,0 +1,18 @@
+# Read all RTL sources
+read_verilog -sv rtl/core/regfile.v rtl/core/decoder.v rtl/core/alu.v \
+    rtl/core/alu_control.v rtl/core/control_unit.v rtl/core/imem.v \
+    rtl/core/dmem.v rtl/core/pipeline_regs.v rtl/core/forwarding_unit.v \
+    rtl/core/muldiv.v rtl/core/csr_unit.v rtl/core/rv32_pipeline.v \
+    rtl/accel/nmc_psum.v rtl/accel/nmc_threshold.v \
+    rtl/accel/nmc_pool_reduce.v rtl/accel/nmc_unit.v rtl/accel/cim_sequencer.v \
+    rtl/accel/xif_bridge.v rtl/soc/soc_top.v
+
+# Synthesize for the top module
+synth -top soc_top
+
+# Optimize and map to generic gates (default ABC library)
+opt_clean -purge
+abc
+
+# Write the gate-level netlist
+write_verilog -noattr build/soc_gate.v
