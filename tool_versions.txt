@@ -1,0 +1,10 @@
+yosys:    0.52 (git sha1 fee39a3284c90249e1d9684cf6944ff6bcbb8f90)
+openroad: 8229a95b89b7f33589cfbf366bc11fe467f0d552
+sta:      2.4.0 (OpenSTA, standalone)
+magic:    8.3 revision 105
+netgen:   <fill after install>
+iverilog: 12.0 (stable)
+riscv gcc: gcc-riscv64-unknown-elf 14.2.0 (+ rv32im/ilp32 wrapper at /usr/local/bin/riscv32-unknown-elf-gcc)
+binutils: riscv64-unknown-elf 2.45.50
+torch:    <fill from step 3>
+pdk lib:  $PDK_ROOT/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib (tt corner, 1.80V)
