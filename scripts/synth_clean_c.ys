@@ -1,5 +1,5 @@
 # Read all RTL sources
-read_verilog -sv rtl/core/regfile.v rtl/core/decoder.v rtl/core/alu.v \
+read_verilog -sv -D NMC rtl/core/regfile.v rtl/core/decoder.v rtl/core/alu.v \
     rtl/core/alu_control.v rtl/core/control_unit.v rtl/core/imem.v \
     rtl/core/dmem.v rtl/core/pipeline_regs.v rtl/core/forwarding_unit.v \
     rtl/core/muldiv.v rtl/core/csr_unit.v rtl/core/rv32_pipeline.v \
@@ -15,4 +15,4 @@ opt_clean -purge
 abc
 
 # Write the gate-level netlist
-write_verilog -noattr build/soc_gate.v
+write_verilog -noattr build/soc_gate_c.v
