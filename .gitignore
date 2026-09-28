@@ -5,3 +5,6 @@ runs/
 soc_top_gls.v
 primitives.v
 sky130_fd_sc_hd.v
+build/
+*.swp
+*.swo

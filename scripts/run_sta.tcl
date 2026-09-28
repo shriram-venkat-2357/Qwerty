@@ -1,0 +1,14 @@
+# OpenSTA Baseline Run - Build C
+
+# 1. Read Liberty and Netlist
+read_liberty /home/shriram_venkat/pdk/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog build/soc_top_synth.v
+link_design soc_top
+
+# 2. Read Constraints
+read_sdc scripts/soc_top.sdc
+
+# 3. Report Timing
+report_checks -path_delay max -fields {slew cap input net fanout} -digits 4 > build/timing_report_40ns.txt
+
+puts "STA Complete. Check build/timing_report_40ns.txt"

@@ -1,0 +1,32 @@
+13. Printing statistics.
+
+=== nmc_array_popcount ===
+
+   Number of wires:               4795
+   Number of wire bits:           9992
+   Number of public wires:         141
+   Number of public wire bits:    4326
+   Number of ports:                  9
+   Number of port bits:             30
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:               8879
+     $add                          127
+     $and                         4260
+     $dffe                        4096
+     $mux                            3
+     $not                          135
+     $shiftx                       128
+     $shl                            2
+     $xor                          128
+
+   Area for cell type $not is unknown!
+   Area for cell type $and is unknown!
+   Area for cell type $xor is unknown!
+   Area for cell type $shl is unknown!
+   Area for cell type $shiftx is unknown!
+   Area for cell type $add is unknown!
+   Area for cell type $mux is unknown!
+   Area for cell type $dffe is unknown!
+

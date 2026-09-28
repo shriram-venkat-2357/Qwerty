@@ -25,3 +25,11 @@ abc -liberty /home/shriram_venkat/pdk/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_02
 opt_clean
 stat
 stat -liberty /home/shriram_venkat/pdk/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+# Flatten hierarchy to remove $paramod$ modules for OpenSTA compatibility
+flatten
+# Split all multi-bit buses into 1-bit wires to eliminate { } concatenations
+splitnets
+opt_clean -purge
+
+# Write pure 1-bit structural netlist
+write_verilog -noattr -noexpr -nohex -nodec -defparam build/soc_top_synth.v
