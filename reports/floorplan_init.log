@@ -2,5 +2,180 @@ Failed to load tclreadline
 OpenROAD 8229a95b89b7f33589cfbf366bc11fe467f0d552 
 This program is licensed under the BSD-3 license. See the LICENSE file for details.
 Components of this program may be licensed under more restrictive licenses which must be honored.
-[ERROR IFP-0038] No design is loaded.
-Error: floorplan_phys.tcl, 5 IFP-0038
+[INFO ODB-0222] Reading LEF file: /home/vanmathisamikkannu/pdk/volare/sky130/versions/a519523b0d9bc913a6f87a5eed083597ed9e2e93/sky130A/libs.ref/sky130_fd_sc_hd/techlef/sky130_fd_sc_hd__nom.tlef
+[INFO ODB-0223]     Created 13 technology layers
+[INFO ODB-0224]     Created 25 technology vias
+[INFO ODB-0226] Finished LEF file:  /home/vanmathisamikkannu/pdk/volare/sky130/versions/a519523b0d9bc913a6f87a5eed083597ed9e2e93/sky130A/libs.ref/sky130_fd_sc_hd/techlef/sky130_fd_sc_hd__nom.tlef
+[INFO ODB-0222] Reading LEF file: /home/vanmathisamikkannu/pdk/volare/sky130/versions/a519523b0d9bc913a6f87a5eed083597ed9e2e93/sky130A/libs.ref/sky130_fd_sc_hd/lef/sky130_fd_sc_hd.lef
+[WARNING ODB-0220] WARNING (LEFPARS-2008): NOWIREEXTENSIONATPIN statement is obsolete in version 5.6 or later.
+The NOWIREEXTENSIONATPIN statement will be ignored. See file /home/vanmathisamikkannu/pdk/volare/sky130/versions/a519523b0d9bc913a6f87a5eed083597ed9e2e93/sky130A/libs.ref/sky130_fd_sc_hd/lef/sky130_fd_sc_hd.lef at line 2.
+
+[INFO ODB-0225]     Created 437 library cells
+[INFO ODB-0226] Finished LEF file:  /home/vanmathisamikkannu/pdk/volare/sky130/versions/a519523b0d9bc913a6f87a5eed083597ed9e2e93/sky130A/libs.ref/sky130_fd_sc_hd/lef/sky130_fd_sc_hd.lef
+[INFO ODB-0222] Reading LEF file: /home/vanmathisamikkannu/src/sky130_sram_macros/sky130_sram_2kbyte_1rw1r_32x512_8/sky130_sram_2kbyte_1rw1r_32x512_8.lef
+[INFO ODB-0225]     Created 1 library cells
+[INFO ODB-0226] Finished LEF file:  /home/vanmathisamikkannu/src/sky130_sram_macros/sky130_sram_2kbyte_1rw1r_32x512_8/sky130_sram_2kbyte_1rw1r_32x512_8.lef
+[WARNING ORD-2011] LEF master sky130_sram_2kbyte_1rw1r_32x512_8 has no liberty cell.
+[WARNING IFP-0028] Core area lower left (100.000, 100.000) snapped to (100.280, 100.640).
+[INFO IFP-0001] Added 606 rows of 3586 site unithd with height 1.
+Placed IMEM macro at (80, 80)
+Placed DMEM macro at (80, 600)
+[INFO GPL-0002] DBU: 1000
+[INFO GPL-0003] SiteSize: 460 2720
+[INFO GPL-0004] CoreAreaLxLy: 100280 100640
+[INFO GPL-0005] CoreAreaUxUy: 1749840 1748960
+[WARNING GPL-0001] clk toplevel port is not placed!
+       Replace will regard clk is placed in (0, 0)
+[WARNING GPL-0001] pc_out[0] toplevel port is not placed!
+       Replace will regard pc_out[0] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[10] toplevel port is not placed!
+       Replace will regard pc_out[10] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[11] toplevel port is not placed!
+       Replace will regard pc_out[11] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[12] toplevel port is not placed!
+       Replace will regard pc_out[12] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[13] toplevel port is not placed!
+       Replace will regard pc_out[13] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[14] toplevel port is not placed!
+       Replace will regard pc_out[14] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[15] toplevel port is not placed!
+       Replace will regard pc_out[15] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[16] toplevel port is not placed!
+       Replace will regard pc_out[16] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[17] toplevel port is not placed!
+       Replace will regard pc_out[17] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[18] toplevel port is not placed!
+       Replace will regard pc_out[18] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[19] toplevel port is not placed!
+       Replace will regard pc_out[19] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[1] toplevel port is not placed!
+       Replace will regard pc_out[1] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[20] toplevel port is not placed!
+       Replace will regard pc_out[20] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[21] toplevel port is not placed!
+       Replace will regard pc_out[21] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[22] toplevel port is not placed!
+       Replace will regard pc_out[22] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[23] toplevel port is not placed!
+       Replace will regard pc_out[23] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[24] toplevel port is not placed!
+       Replace will regard pc_out[24] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[25] toplevel port is not placed!
+       Replace will regard pc_out[25] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[26] toplevel port is not placed!
+       Replace will regard pc_out[26] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[27] toplevel port is not placed!
+       Replace will regard pc_out[27] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[28] toplevel port is not placed!
+       Replace will regard pc_out[28] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[29] toplevel port is not placed!
+       Replace will regard pc_out[29] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[2] toplevel port is not placed!
+       Replace will regard pc_out[2] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[30] toplevel port is not placed!
+       Replace will regard pc_out[30] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[31] toplevel port is not placed!
+       Replace will regard pc_out[31] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[3] toplevel port is not placed!
+       Replace will regard pc_out[3] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[4] toplevel port is not placed!
+       Replace will regard pc_out[4] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[5] toplevel port is not placed!
+       Replace will regard pc_out[5] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[6] toplevel port is not placed!
+       Replace will regard pc_out[6] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[7] toplevel port is not placed!
+       Replace will regard pc_out[7] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[8] toplevel port is not placed!
+       Replace will regard pc_out[8] is placed in (0, 0)
+[WARNING GPL-0001] pc_out[9] toplevel port is not placed!
+       Replace will regard pc_out[9] is placed in (0, 0)
+[WARNING GPL-0001] rst_n toplevel port is not placed!
+       Replace will regard rst_n is placed in (0, 0)
+[INFO GPL-0006] NumInstances: 26349
+[INFO GPL-0007] NumPlaceInstances: 26349
+[INFO GPL-0008] NumFixedInstances: 0
+[INFO GPL-0009] NumDummyInstances: 0
+[INFO GPL-0010] NumNets: 26446
+[INFO GPL-0011] NumPins: 93501
+[INFO GPL-0012] DieAreaLxLy: 0 0
+[INFO GPL-0013] DieAreaUxUy: 1850000 1850000
+[INFO GPL-0014] CoreAreaLxLy: 100280 100640
+[INFO GPL-0015] CoreAreaUxUy: 1749840 1748960
+[INFO GPL-0016] CoreArea: 2719002739200
+[INFO GPL-0017] NonPlaceInstsArea: 0
+[INFO GPL-0018] PlaceInstsArea: 780395869600
+[INFO GPL-0019] Util(%): 28.70
+[INFO GPL-0020] StdInstsArea: 211318921600
+[INFO GPL-0021] MacroInstsArea: 569076948000
+[InitialPlace]  Iter: 1 CG residual: 0.00714759 HPWL: 399808920
+[InitialPlace]  Iter: 2 CG residual: 0.00089494 HPWL: 359572584
+[InitialPlace]  Iter: 3 CG residual: 0.00061468 HPWL: 359854296
+[InitialPlace]  Iter: 4 CG residual: 0.00045482 HPWL: 360843336
+[InitialPlace]  Iter: 5 CG residual: 0.00043316 HPWL: 360554095
+[InitialPlace]  Iter: 6 CG residual: 0.00032984 HPWL: 361015832
+[InitialPlace]  Iter: 7 CG residual: 0.00030094 HPWL: 360791865
+[InitialPlace]  Iter: 8 CG residual: 0.00024652 HPWL: 361103987
+[InitialPlace]  Iter: 9 CG residual: 0.00031313 HPWL: 360891819
+[InitialPlace]  Iter: 10 CG residual: 0.00026871 HPWL: 361169961
+[InitialPlace]  Iter: 11 CG residual: 0.00029794 HPWL: 360895667
+[InitialPlace]  Iter: 12 CG residual: 0.00028854 HPWL: 361143790
+[InitialPlace]  Iter: 13 CG residual: 0.00030709 HPWL: 360892121
+[InitialPlace]  Iter: 14 CG residual: 0.00031432 HPWL: 361161816
+[InitialPlace]  Iter: 15 CG residual: 0.00029203 HPWL: 361350741
+[InitialPlace]  Iter: 16 CG residual: 0.00027578 HPWL: 361221858
+[InitialPlace]  Iter: 17 CG residual: 0.00051086 HPWL: 360902416
+[InitialPlace]  Iter: 18 CG residual: 0.00050339 HPWL: 361189638
+[InitialPlace]  Iter: 19 CG residual: 0.00031657 HPWL: 360968786
+[InitialPlace]  Iter: 20 CG residual: 0.00032800 HPWL: 361150959
+[INFO GPL-0031] FillerInit: NumGCells: 208640
+[INFO GPL-0032] FillerInit: NumGNets: 26446
+[INFO GPL-0033] FillerInit: NumGPins: 93501
+[INFO GPL-0023] TargetDensity: 0.70
+[INFO GPL-0024] AveragePlaceInstArea: 29617665
+[INFO GPL-0025] IdealBinArea: 42310948
+[INFO GPL-0026] IdealBinCnt: 64262
+[INFO GPL-0027] TotalBinArea: 2719002739200
+[INFO GPL-0028] BinCnt: 128 128
+[INFO GPL-0029] BinSize: 12888 12878
+[INFO GPL-0030] NumBins: 16384
+[NesterovSolve] Iter: 1 overflow: 0.604423 HPWL: 114597806
+[NesterovSolve] Iter: 10 overflow: 0.602736 HPWL: 124813583
+[NesterovSolve] Iter: 20 overflow: 0.599015 HPWL: 133804356
+[NesterovSolve] Iter: 30 overflow: 0.589864 HPWL: 140015229
+[NesterovSolve] Iter: 40 overflow: 0.581807 HPWL: 143922791
+[NesterovSolve] Iter: 50 overflow: 0.576976 HPWL: 146850643
+[NesterovSolve] Iter: 60 overflow: 0.574216 HPWL: 149214172
+[NesterovSolve] Iter: 70 overflow: 0.573031 HPWL: 151265127
+[NesterovSolve] Iter: 80 overflow: 0.572056 HPWL: 152881307
+[NesterovSolve] Iter: 90 overflow: 0.571061 HPWL: 153668747
+[NesterovSolve] Iter: 100 overflow: 0.570499 HPWL: 153578891
+[NesterovSolve] Iter: 110 overflow: 0.569943 HPWL: 152877587
+[NesterovSolve] Iter: 120 overflow: 0.569485 HPWL: 151826247
+[NesterovSolve] Iter: 130 overflow: 0.568554 HPWL: 150653052
+[NesterovSolve] Iter: 140 overflow: 0.566018 HPWL: 149664791
+[NesterovSolve] Iter: 150 overflow: 0.560464 HPWL: 149720930
+[NesterovSolve] Iter: 160 overflow: 0.549424 HPWL: 151743781
+[NesterovSolve] Iter: 170 overflow: 0.532965 HPWL: 159805106
+[NesterovSolve] Iter: 180 overflow: 0.461671 HPWL: 175564257
+[NesterovSolve] Iter: 190 overflow: 0.40591 HPWL: 200158381
+[NesterovSolve] Iter: 200 overflow: 0.352297 HPWL: 238427900
+[NesterovSolve] Iter: 210 overflow: 0.343376 HPWL: 262550784
+[NesterovSolve] Iter: 220 overflow: 0.338955 HPWL: 294661261
+[NesterovSolve] Iter: 230 overflow: 0.333949 HPWL: 335680333
+[NesterovSolve] Iter: 240 overflow: 0.327852 HPWL: 381051444
+[NesterovSolve] Iter: 250 overflow: 0.318147 HPWL: 420559971
+[NesterovSolve] Iter: 260 overflow: 0.306167 HPWL: 436806607
+[NesterovSolve] Iter: 270 overflow: 0.29283 HPWL: 425070431
+[NesterovSolve] Iter: 280 overflow: 0.276348 HPWL: 436530356
+[NesterovSolve] Iter: 290 overflow: 0.25631 HPWL: 525761485
+[NesterovSolve] Iter: 300 overflow: 0.235699 HPWL: 581969968
+[NesterovSolve] Iter: 310 overflow: 0.219913 HPWL: 566665811
+[NesterovSolve] Iter: 320 overflow: 0.204095 HPWL: 610106689
+[NesterovSolve] Iter: 330 overflow: 0.18637 HPWL: 568885629
+[NesterovSolve] Iter: 340 overflow: 0.165641 HPWL: 619929079
+[NesterovSolve] Iter: 350 overflow: 0.142712 HPWL: 588128679
+[NesterovSolve] Iter: 360 overflow: 0.121115 HPWL: 581563014
+[NesterovSolve] Iter: 370 overflow: 0.103605 HPWL: 591133484
+[NesterovSolve] Finished with Overflow: 0.098745
+Design area 780396 u^2 29% utilization.
