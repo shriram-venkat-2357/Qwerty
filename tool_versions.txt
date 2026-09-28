@@ -2,7 +2,7 @@ yosys:    0.52 (git sha1 fee39a3284c90249e1d9684cf6944ff6bcbb8f90)
 openroad: 8229a95b89b7f33589cfbf366bc11fe467f0d552
 sta:      2.4.0 (OpenSTA, standalone)
 magic:    8.3 revision 105
-netgen:   <fill after install>
+netgen:   1.5.324 (built from source, Tcl/Tk enabled)
 iverilog: 12.0 (stable)
 riscv gcc: gcc-riscv64-unknown-elf 14.2.0 (+ rv32im/ilp32 wrapper at /usr/local/bin/riscv32-unknown-elf-gcc)
 binutils: riscv64-unknown-elf 2.45.50
