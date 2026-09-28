@@ -1,4 +1,3 @@
-`define NMC
 module rv32_pipeline #(
     parameter IMEM_FILE = "program.hex"
 ) (

@@ -24,7 +24,7 @@ sim:
 	vvp build/soc_$(BUILD).vvp
 
 sim_trap:
-	iverilog -o build/trap.vvp $(CORE) tb/tb_trap.v
+	iverilog -o build/trap.vvp $(CORE) rtl/accel/nmc_psum.v rtl/accel/nmc_threshold.v rtl/accel/nmc_pool_reduce.v rtl/accel/nmc_unit.v rtl/accel/cim_sequencer.v rtl/accel/xif_bridge.v tb/tb_trap.v
 	vvp build/trap.vvp
 
 lint:
