@@ -65,9 +65,11 @@ module cim_sequencer #(
             act_valid <= 0; act_out <= 0; b_addr <= 0;
             wptr <= 0; rptr <= 0; fcnt <= 0; tot <= 0; cnt <= 0;
             w3 <= 0; asm_reg <= 0; res <= 0; done_r <= 0; error_r <= 0;
+            we_thr <= 0; thr_addr <= 0; thr_data <= 0;
             for (i = 0; i < FDEPTH; i = i + 1) fifo[i] <= 0;
         end else begin
             act_valid <= 1'b0;
+            we_thr <= 1'b0;
             if (pool_valid) res <= pool_data;
 
             case (state)
@@ -84,6 +86,11 @@ module cim_sequencer #(
                     3'b010: begin
                         if (fcnt < 4) begin error_r <= 1'b1; done_r <= 1'b1; end
                         else begin state <= RUN; w3 <= 0; end
+                    end
+                    3'b100: begin
+                        we_thr <= 1'b1;
+                        thr_addr <= rs1[$clog2(COLS)-1:0];
+                        thr_data <= rs2;
                     end
 		    3'b100: begin              // nmc.cfg (Decision 0002)
                         we_thr   <= 1'b1;

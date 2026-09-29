@@ -62,7 +62,7 @@ layer_loop:
     call wait_done
 
     /* --- 3. Load Thresholds (Decision 0002 Placeholder) --- */
-    /* Uncomment when C provides the threshold vector:
+    // Uncommented: C provided thresholds the threshold vector:
     li t0, 32
 cfg_loop:
     addi t0, t0, -1
@@ -70,7 +70,7 @@ cfg_loop:
     mv t2, t0           # rs1 = column address
     .insn r OPCODE_CUSTOM0, FUNCT3_CFG, 0, x0, t2, t1
     bnez t0, cfg_loop
-    */
+    // End threshold loading
 
     /* --- 4. Execute Conv (9 kernel positions) --- */
     li t0, 9
