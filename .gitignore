@@ -12,3 +12,4 @@ data/
 train.log
 data/
 train.log
+*.hex
