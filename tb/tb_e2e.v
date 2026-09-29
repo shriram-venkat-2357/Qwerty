@@ -3,10 +3,15 @@ module tb_e2e;
     reg clk, rst_n;
     wire [31:0] pc;
     
-    // Instantiate the full SoC
     soc_top #(.IMEM_FILE("tb/program_e2e.hex")) u_soc (
         .clk(clk), .rst_n(rst_n), .pc_out(pc)
     );
+    
+    // Dump VCD so you can visually verify the result in GTKWave tomorrow if needed
+    initial begin
+        $dumpfile("build/e2e.vcd");
+        $dumpvars(0, tb_e2e);
+    end
     
     initial clk = 0;
     always #5 clk = ~clk;
@@ -21,13 +26,13 @@ module tb_e2e;
             c = c + 1;
             
             // The 'halt' loop in our assembly program is at address 0x58.
-            // If the PC reaches here, the accelerator sequence completed successfully.
+            // If the PC reaches here, the accelerator finished and the CSR poll succeeded.
             if (pc == 32'h00000058) begin
                 $display("PASS: End-to-End Harness Green. Reached halt loop.");
                 $finish;
             end
         end
-        $display("FAIL: Timeout. PC did not reach 0x58 (likely hung in poll loop).");
+        $display("FAIL: Timeout. PC did not reach 0x58 (hung in poll loop).");
         $finish;
     end
 endmodule
