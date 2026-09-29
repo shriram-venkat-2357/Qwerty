@@ -18,3 +18,7 @@ Owner: Shriram Kumar V
 - Accelerator dispatch is primarily through custom-0 instructions, not MMIO.
 - MMIO region is optional/debug and may be removed or changed.
 - UART/putchar address must be confirmed with Member C.
+
+## Addendum (Decision 0002, acked by C 2026-09-28): nmc.cfg
+custom-0 (0x0B), funct3 = 3'b100, R-type: rs1 = column address, rs2 = signed threshold.
+Non-blocking; completes in one cycle with done set. Thresholds reset to 0 at rst.

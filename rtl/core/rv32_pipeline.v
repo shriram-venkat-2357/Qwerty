@@ -153,6 +153,9 @@ input  wire        clk,
     // --- Forwarding ---
     wire [1:0] forward_a;
     wire [1:0] forward_b;
+    wire        seq_we_thr;
+    wire [4:0]  seq_thr_addr;
+    wire [31:0] seq_thr_data;
     // ============================================================
     // IF STAGE
     // ============================================================
@@ -583,6 +586,9 @@ input  wire        clk,
         .we_row     (seq_we_row),
         .wr_row     (seq_wr_row),
         .wr_data    (seq_wr_data),
+	.we_thr   (seq_we_thr),
+	.thr_addr (seq_thr_addr),
+	.thr_data (seq_thr_data),
         .act_valid  (seq_act_valid),
         .act_out    (seq_act_out),
         .pool_valid (nmc_out_valid),
@@ -597,9 +603,9 @@ input  wire        clk,
         .we_row     (seq_we_row),
         .wr_row     (seq_wr_row),
         .wr_data    (seq_wr_data),
-        .we_thr     (1'b0),
-        .thr_addr   (5'd0),
-        .thr_data   (32'd0),
+        .we_thr     (seq_we_thr),
+        .thr_addr   (seq_thr_addr),
+        .thr_data   (seq_thr_data),
         .shift_amt  (3'd0),
         .act_valid  (seq_act_valid),
         .act_in     (seq_act_out),

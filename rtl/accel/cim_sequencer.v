@@ -34,7 +34,10 @@ module cim_sequencer #(
     input  wire [COLS-1:0] pool_data,
     // dmem port B
     output reg  [31:0] b_addr,
-    input  wire [31:0] b_rdata
+    input  wire [31:0] b_rdata,
+    output reg                 we_thr,
+    output reg  [$clog2(COLS)-1:0] thr_addr,
+    output reg  [31:0]         thr_data
 );
 
     localparam IDLE = 2'd0, LDW = 2'd1, LDA = 2'd2, RUN = 2'd3;
@@ -56,7 +59,8 @@ module cim_sequencer #(
 
     integer i;
     always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
+        we_thr <= 1'b0;
+	if (!rst_n) begin
             state <= IDLE; we_row <= 0; wr_row <= 0; wr_data <= 0;
             act_valid <= 0; act_out <= 0; b_addr <= 0;
             wptr <= 0; rptr <= 0; fcnt <= 0; tot <= 0; cnt <= 0;
@@ -80,6 +84,13 @@ module cim_sequencer #(
                     3'b010: begin
                         if (fcnt < 4) begin error_r <= 1'b1; done_r <= 1'b1; end
                         else begin state <= RUN; w3 <= 0; end
+                    end
+		    3'b100: begin              // nmc.cfg (Decision 0002)
+                        we_thr   <= 1'b1;
+                        thr_addr <= rs1[$clog2(COLS)-1:0];
+                        thr_data <= rs2;
+                        done_r   <= 1'b1;
+                        state    <= IDLE;
                     end
                     default: ;   // nmc.rd: no sequencer action
                     endcase
@@ -138,7 +149,7 @@ module cim_sequencer #(
     // 1. Never leave IDLE without a valid funct3
     always @(posedge clk or negedge rst_n) begin
         if (rst_n && state == IDLE && issue) begin
-            if (!(funct3 == 3'b000 || funct3 == 3'b001 || funct3 == 3'b010 || funct3 == 3'b011))
+            if (!(funct3 == 3'b000 || funct3 == 3'b001 || funct3 == 3'b010 || funct3 == 3'b011 || funct3 == 3'b100))
                 $error("ASSERT FAIL: Invalid funct3 on issue in IDLE");
         end
     end

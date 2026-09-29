@@ -7,6 +7,13 @@ module tb_nmc_instr;
         .clk(clk), .rst_n(rst_n), .pc_out(pc)
     );
 
+
+    // --- Decision 0002 sampler: latch the one-cycle nmc.cfg write pulse ---
+    reg saw_cfg300 = 1'b0, saw_cfg0 = 1'b0;
+    always @(posedge clk) begin
+        if (u_cpu.u_nmc.we_thr === 1'b1 && u_cpu.u_nmc.thr_addr === 5'd0 && u_cpu.u_nmc.thr_data === 32'd300) saw_cfg300 <= 1'b1;
+        if (u_cpu.u_nmc.we_thr === 1'b1 && u_cpu.u_nmc.thr_addr === 5'd0 && u_cpu.u_nmc.thr_data === 32'd0)  saw_cfg0  <= 1'b1;
+    end
     initial clk = 0;
     always #5 clk = ~clk;
 
@@ -37,6 +44,10 @@ module tb_nmc_instr;
         if (u_cpu.u_regfile.regs[7] !== 32'hA) begin
             errs = errs+1; $display("FAIL status: %h", u_cpu.u_regfile.regs[7]); end
 
+    if (saw_cfg300) $display("CFG TEST PASSED: nmc.cfg wrote thr[0]=300");
+    else begin $display("CFG TEST FAILED: thr[0]=300 write never observed"); $finish; end
+    if (saw_cfg0)  $display("CFG TEST PASSED: nmc.cfg restored thr[0]=0");
+    else begin $display("CFG TEST FAILED: thr[0]=0 restore never observed"); $finish; end
         if (errs == 0) $display("ALL NMC INSTR TESTS PASSED");
         else $display("%0d nmc-instr checks FAILED", errs);
         $finish;
