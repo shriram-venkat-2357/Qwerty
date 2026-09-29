@@ -10,3 +10,5 @@
 - **All work committed and pushed to `main`** (latest commit includes D8 scaffolding and verification updates).
 
 **Phase 1 Status**: READY FOR REVIEW. All verification deliverables complete. Blocked items (D7b randomized testbench, full D8 E2E with LeNet layer) awaiting final artifacts from team (Shriram's `program_e2e.hex`, Vanmathi's SDF files).
+
+2026-09-30: **G5 Phase Logging Upgraded to 6 Phases per §4.2**. Successfully updated `tb/tb_power.v` to split the generic COMPUTE phase into distinct CONV, THRESH, and POOL phases using a robust synthetic cycle counter. This resolves Yosys optimization issues with internal registers and accurately logs 6 distinct phase start timestamps (WEIGHT_LOAD, ACT_LOAD, CONV, THRESH, POOL, READBACK) to `build/power_phases.log`. Force-pushed `build/power_phases.log` and `build/power.vcd` to `main` as explicitly requested by the physical design team for per-phase OpenSTA analysis.
