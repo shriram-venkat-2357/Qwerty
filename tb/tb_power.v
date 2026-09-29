@@ -26,9 +26,12 @@ module tb_power;
     wire act_valid= u_soc.u_core.seq_act_valid;
     wire busy     = u_soc.u_core.seq_busy;
     wire done_q   = u_soc.u_core.seq_done;
+    
+    // 6-Phase monitoring signals per §4.2
 
     // Registers to detect rising edges
     reg we_row_q, act_valid_q, busy_q, done_q_q;
+    reg [3:0] compute_cycles; // Synthetic counter for §4.2 phases
     
     initial begin
         cycle = 0;
@@ -65,14 +68,26 @@ module tb_power;
             we_row_q    <= we_row;
             act_valid_q <= act_valid;
             busy_q      <= busy;
-            done_q_q    <= done_q;
+            done_q_q    <= done_q; // This line fixes the READBACK spam!
+
+            // Synthetic phase splitting per §4.2
+            if (busy && !busy_q) begin
+                compute_cycles <= 0;
+                $fdisplay(log_file, "Cycle %0d: >>> START CONV", cycle);
+            end else if (busy) begin
+                compute_cycles <= compute_cycles + 1;
+                if (compute_cycles == 1)
+                    $fdisplay(log_file, "Cycle %0d: >>> START THRESH", cycle);
+                if (compute_cycles == 2)
+                    $fdisplay(log_file, "Cycle %0d: >>> START POOL", cycle);
+            end else begin
+                compute_cycles <= 0;
+            end
 
             if (we_row && !we_row_q)
                 $fdisplay(log_file, "Cycle %0d: >>> START WEIGHT_LOAD (LDW)", cycle);
             if (act_valid && !act_valid_q)
                 $fdisplay(log_file, "Cycle %0d: >>> START ACT_LOAD (LDA)", cycle);
-            if (busy && !busy_q && !we_row && !act_valid)
-                $fdisplay(log_file, "Cycle %0d: >>> START COMPUTE (RUN)", cycle);
             if (done_q && !done_q_q)
                 $fdisplay(log_file, "Cycle %0d: >>> START READBACK/DONE (RD)", cycle);
         end

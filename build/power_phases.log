@@ -1,0 +1,20 @@
+=== G5 ENERGY TABLE: PHASE TIMESTAMPS (Synthetic Layer) ===
+NOTE: Functional gate-level sim (no SDF). True timing pending Liberty/SDF from C.
+Cycle count is based on 100MHz clock (10ns period).
+-----------------------------------------------------------
+Cycle 21: >>> START CONV
+Cycle 22: >>> START WEIGHT_LOAD (LDW)
+Cycle 23: >>> START THRESH
+Cycle 24: >>> START POOL
+Cycle 25: >>> START READBACK/DONE (RD)
+Cycle 27: >>> START CONV
+Cycle 29: >>> START THRESH
+Cycle 30: >>> START POOL
+Cycle 35: >>> START READBACK/DONE (RD)
+Cycle 37: >>> START CONV
+Cycle 39: >>> START THRESH
+Cycle 40: >>> START POOL
+Cycle 41: >>> START ACT_LOAD (LDA)
+Cycle 45: >>> START ACT_LOAD (LDA)
+Cycle 45: >>> START READBACK/DONE (RD)
+End of simulation at cycle 50000
