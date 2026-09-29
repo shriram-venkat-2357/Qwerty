@@ -1,23 +1,24 @@
-.text
-.globl _start
+    .section .text.start
+    .globl _start
 _start:
-    li t0, 0x00020000
-    li t1, 128
-    .insn r 0x0B, 0, 0, x0, t0, t1
-
-    li t0, 0x00020400
-    li t1, 4
-    .insn r 0x0B, 1, 0, x0, t0, t1
-
-    .insn r 0x0B, 2, 0, x0, x0, x0
-
-poll:
-    li t0, 0x7C0
-    csrr t1, t0
-    andi t1, t1, 1
-    bnez t1, poll
-
-    .insn r 0x0B, 3, 0, a0, x0, x0
-
-    li t0, 0x00020800
-    sw a0, 0(t0)
+    li   t4, 0x10000000
+    li   a0, 0
+    li   a1, 0
+    .insn r 0x0b, 4, 0, x0, a0, a1
+    li   a0, 0
+    li   a1, 39
+    .insn r 0x0b, 0, 0, x0, a0, a1
+    li   a2, 0x100
+    li   a3, 16
+    .insn r 0x0b, 1, 0, x0, a2, a3
+    .insn r 0x0b, 2, 0, x0, x0, x0
+L_poll:
+    csrr t2, 0x7C0
+    andi t3, t2, 1
+    bnez t3, L_poll
+    .insn r 0x0b, 3, 0, a4, x0, x0
+    sw   a4, 0x300(t4)
+    li   a5, 0xCAFEF00D
+    sw   a5, 0x320(t4)
+L_halt:
+    j    L_halt
