@@ -1,5 +1,10 @@
 # Per-Phase Energy Table — Builds A and C (Week 6, Gate G5)
 
+> **STATUS: PROXY DATA (Week 6 Gate Fallback)**
+> Per Risk Register (§12): OpenSTA flow not yet operational. 
+> "Cycles" are from RTL simulation. "Energy" values are placeholders. 
+> Final numbers pending C's SRAM macro integration and OpenSTA run.
+
 Status: **SCAFFOLD — awaiting B's VCD timestamps and C's OpenSTA numbers.**
 Owners: A (schema, netlist, SDC) · B (gate-level SDF VCD + phase log) · C (OpenSTA read_power_activity).
 
